@@ -62,7 +62,7 @@ fun! autocomplete#attach() abort
     autocmd InsertEnter   <buffer> lua require'autocomplete'.on_InsertEnter()
     autocmd InsertLeave   <buffer> lua require'autocomplete'.on_InsertLeave()
     autocmd InsertCharPre <buffer> lua require'autocomplete'.on_InsertCharPre()
-    autocmd CompleteDone  <buffer> lua require'autocomplete'.confirmCompletion()
+    autocmd CompleteDone  <buffer> lua require'autocomplete'.on_CompleteDone()
   augroup end
   let b:completion_auto_popup = get(g:autocomplete, 'auto_popup', 1)
   if get(g:autocomplete, 'confirm_key', '') != ''

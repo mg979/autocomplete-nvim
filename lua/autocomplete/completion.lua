@@ -128,17 +128,18 @@ function completion.try()
   Var.changedTick = tick
 
   local line_to_cursor, from_column, prefix = getPositionalParams()
+  local src = sources.getCurrent()
 
   -- print(#prefix, Var.oldPrefixLen, sources.getCurrent().triggerLength)
 
   -- don't proceed when backspacing in insert mode, or when typing a new word
-  local word_too_short = #prefix < Var.oldPrefixLen or
+  local word_too_short = ( #prefix < Var.oldPrefixLen and not pumvisible() ) or
                          #prefix < sources.getCurrent().triggerLength
 
   Var.oldPrefixLen = #prefix
   if word_too_short then return popup.dismiss() end
 
-  local src = sources.getCurrent()
+  if pumvisible() then return end
 
   local can_try = Var.forceCompletion or
                   util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
@@ -251,7 +252,6 @@ end
 function asynch.completion(methods, prefix, from_column)
   -- we inform that there's a completion attempt running
   Var.canTryCompletion = false
-  Var.changedTick = 0
   -- callback_array: if asynch, callback for method will be initially false, it
   -- will become true when completion items have been generated
   local callback_array = {}
