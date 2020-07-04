@@ -42,8 +42,8 @@ let g:autocomplete.chains = get(g:autocomplete, 'chains', {
 command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()
 
 inoremap <silent> <Plug>(Autocomplete) <C-r>=luaeval("require'autocomplete'.manualCompletion()")<CR>
-inoremap <silent> <Plug>(NextSource) <cmd>lua require'autocomplete.completion'.nextSource()<CR>
-inoremap <silent> <Plug>(PrevSource) <cmd>lua require'autocomplete.completion'.prevSource()<CR>
+inoremap <silent> <Plug>(NextSource) <C-r>=autocomplete#changeSource('next')<CR>
+inoremap <silent> <Plug>(PrevSource) <C-r>=autocomplete#changeSource('prev')<CR>
 inoremap <silent> <Plug>(ConfirmCompletion) <C-r>=autocomplete#confirm()<CR>
 inoremap <silent> <Plug>(InsCompletion) <C-r>=g:autocomplete_inscompletion<CR>
 
@@ -72,6 +72,11 @@ endfun
 fun! autocomplete#nextSource() abort
   lua require'autocomplete.completion'.nextSource()
   return ''
+endfun
+
+fun! autocomplete#changeSource(dir) abort
+  let ret = complete_info().selected >= 0 ? "\<C-e>" : ''
+  return ret . "\<C-r>=luaeval(\"require'autocomplete.completion'.".a:dir."Source()\")\<CR>"
 endfun
 
 let &cpo = s:save_cpo

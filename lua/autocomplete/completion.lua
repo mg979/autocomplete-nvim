@@ -71,12 +71,15 @@ function popup.dismiss()
 end
 
 
--- Manually triggered completion or manually changing completion source
+-- Manually triggered completion
 function popup.manual()
+  Var.forceCompletion = true
   if pumvisible() or not Var.canTryCompletion then
-    -- manual completion will be retriggered by the update function
-    return completion.retry()
+    return completion.retry() -- manual completion will be retriggered
   end
+  -- set this variables to pass the tests in completion.try()
+  Var.changedTick = 0
+  Var.insertChar = true
   completion.try()
 end
 
@@ -152,7 +155,7 @@ function completion.try()
   local line_to_cursor, from_column, prefix = getPositionalParams()
 
   -- don't proceed when backspacing in insert mode, or when typing a new word
-  local word_too_short = #prefix < src.triggerLength
+  local word_too_short = not Var.forceCompletion and #prefix < src.triggerLength
   Var.oldPrefixLen = #prefix
 
   if word_too_short then return popup.dismiss() end
@@ -161,7 +164,6 @@ function completion.try()
   if not Var.insertChar then return end
   -- can reset the flag now
   Var.insertChar = false
-
 
   local can_try = Var.forceCompletion or
                   util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
@@ -318,6 +320,7 @@ function completion.nextSource()
     Var.chainIndex = 1
     stopChanging()
   end
+  return ''
 end
 
 function completion.prevSource()
@@ -328,6 +331,7 @@ function completion.prevSource()
     Var.chainIndex = #Var.activeChain
     stopChanging()
   end
+  return ''
 end
 
 

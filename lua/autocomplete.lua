@@ -54,8 +54,8 @@ end
 ------------------------------------------------------------------------
 
 function M.manualCompletion()
-  Var.forceCompletion = true
   completion.popup.manual()
+  return ''
 end
 
 -- provide api for custom sources
