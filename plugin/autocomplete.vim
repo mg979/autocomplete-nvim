@@ -57,13 +57,12 @@ fun! autocomplete#confirm() abort
 endfun
 
 fun! autocomplete#attach() abort
-  augroup CompletionCommand
-    autocmd!
-    autocmd InsertEnter   <buffer> lua require'autocomplete'.on_InsertEnter()
-    autocmd InsertLeave   <buffer> lua require'autocomplete'.on_InsertLeave()
-    autocmd InsertCharPre <buffer> lua require'autocomplete'.on_InsertCharPre()
-    autocmd CompleteDone  <buffer> lua require'autocomplete'.on_CompleteDone()
-  augroup end
+  if exists('b:autocomplete') | return | endif
+  let b:autocomplete = {}
+  autocmd InsertEnter   <buffer> lua require'autocomplete'.on_InsertEnter()
+  autocmd InsertLeave   <buffer> lua require'autocomplete'.on_InsertLeave()
+  autocmd InsertCharPre <buffer> lua require'autocomplete'.on_InsertCharPre()
+  autocmd CompleteDone  <buffer> lua require'autocomplete'.on_CompleteDone()
   let b:completion_auto_popup = get(g:autocomplete, 'auto_popup', 1)
   if get(g:autocomplete, 'confirm_key', '') != ''
     exe 'imap' g:autocomplete.confirm_key '<Plug>(ConfirmCompletion)'
