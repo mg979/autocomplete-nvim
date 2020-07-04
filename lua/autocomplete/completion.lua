@@ -292,26 +292,34 @@ end
 --                           chain controls                           --
 ------------------------------------------------------------------------
 
+local function stopChanging()
+  -- manual completion flag must be reset if no completions are found
+  Var.forceCompletion = false
+  if pumvisible() then
+    completion.retry() -- bring back last possible completion
+  else
+    vim.api.nvim_feedkeys(cgcg, 'n', true) -- reset vim completion mode
+  end
+end
+
 function completion.nextSource()
   if Var.chainIndex ~= #Var.activeChain then
     Var.chainIndex = Var.chainIndex + 1
+    completion.retry()
   else
     Var.chainIndex = 1
-    -- manual completion flag must be reset if no completions are found
-    Var.forceCompletion = false
-    -- we also ensure that completion mode is truly reset
-    -- vim.api.nvim_feedkeys(cgcg, 'n', true)
+    stopChanging()
   end
-  completion.retry()
 end
 
 function completion.prevSource()
   if Var.chainIndex ~= 1 then
     Var.chainIndex = Var.chainIndex - 1
+    completion.retry()
   else
     Var.chainIndex = #Var.activeChain
+    stopChanging()
   end
-  completion.retry()
 end
 
 
