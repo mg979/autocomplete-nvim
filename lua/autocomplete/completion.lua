@@ -147,8 +147,7 @@ function completion.try()
     return completion.nextSource()
   end
 
-  -- open hover and signature popup if appropriate
-  checkHover()
+  checkHover() -- open hover and signature popup if appropriate
 
   local line_to_cursor, from_column, prefix = getPositionalParams()
 
@@ -160,6 +159,9 @@ function completion.try()
 
   -- stop if no new character has been inserted
   if not Var.insertChar then return end
+  -- can reset the flag now
+  Var.insertChar = false
+
 
   local can_try = Var.forceCompletion or
                   util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
@@ -221,10 +223,6 @@ local function blockingCompletion(methods, prefix, from_column)
 end
 
 function completion.perform(src, prefix, from_column)
-  -- we reset insertChar flag, if it happens that a character is inserted while
-  -- the timer is running, this flag turns true and the timer will be terminated
-  Var.insertChar = false
-
   if sources.ctrlx[src.methods[1]] then -- it's and ins-completion source
     insCompletion(src.methods[1])
   elseif src.asynch then
