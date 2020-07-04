@@ -13,11 +13,11 @@ local G = vim.g.autocomplete
 
 local function validateChain(chain, ft, scope)
   local Ft, Hl, error = false
-  for item in chain do
+  for _,item in ipairs(chain) do
     if not chains.validateChainItem(item) then
       Ft = ft and (', in filetype "' .. ft .. '"') or ''
       Hl = scope and (', for scope "' .. scope  .. '"') or ''
-      health_error(item.." is not a valid completion source" .. Ft .. Hl)
+      health_error(vim.inspect(item) .. " is not a valid completion source" .. Ft .. Hl)
       error = true
     end
   end
