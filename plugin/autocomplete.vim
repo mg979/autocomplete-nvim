@@ -17,7 +17,7 @@ let s:autocomplete = {
       \ 'auto_popup':             get(g:autocomplete, 'auto_popup', 1),
       \ 'auto_signature':         get(g:autocomplete, 'auto_signature', 1),
       \ 'auto_paren':             get(g:autocomplete, 'auto_paren', 0),
-      \ 'auto_hover':             get(g:autocomplete, 'auto_hover', 0),
+      \ 'auto_hover':             get(g:autocomplete, 'auto_hover', 1),
       \ 'docked_hover':           get(g:autocomplete, 'docked_hover', 0),
       \ 'minimum_size':           get(g:autocomplete, 'minimum_size', 5),
       \ 'maximum_size':           get(g:autocomplete, 'maximum_size', 20),

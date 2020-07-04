@@ -17,7 +17,6 @@ local G = vim.g.autocomplete
 function M.on_InsertCharPre()
   Var.insertChar = true
   Var.textHover = true
-  Var.canTryCompletion = true
   Var.selected = -1
   if vim.fn.pumvisible() == 0 then
     Var.chainIndex = 1

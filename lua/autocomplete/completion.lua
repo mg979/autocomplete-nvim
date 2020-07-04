@@ -32,6 +32,7 @@ end
 -- current completion must be re-evaluated
 function completion.retry()
   Var.changedTick = 0
+  Var.insertChar = true
   -- Var.oldPrefixLen = 0
   asynch.stop()
   popup.dismiss()
@@ -109,44 +110,53 @@ end
 --                 verify prerequisites for completion                --
 ------------------------------------------------------------------------
 
+-- check if hover or signature popup should open
+local function checkHover()
+  local tick = vim.api.nvim_buf_get_changedtick(0)
+  if tick == Var.changedTick then return end
+  Var.changedTick = tick
+  if vim.g.autocomplete.auto_hover == 1 then
+    hover.autoOpenHoverInPopup()
+  end
+  if vim.g.autocomplete.auto_signature == 1 then
+    signature.autoOpenSignatureHelp()
+  end
+end
+
 -- test if completion can be triggered, if this will result in a completion
 -- popup will obviously depend on whether there are candidates for the prefix
 function completion.try()
-  local tick = vim.api.nvim_buf_get_changedtick(0)
+  -- asynch completion timer in progress
+  if not Var.canTryCompletion then return end
 
-  -- change source if no item is available
-  if Var.canTryCompletion and Var.changeSource then
+  -- change source if no item is available from previous attempt
+  if Var.changeSource then
     Var.changeSource = false
     return completion.nextSource()
   end
 
-  -- no need to proceed if no changes have been made
-  -- also stop if there's a completion timer running
-  if tick == Var.changedTick or not Var.canTryCompletion then
-    return
-  end
-  Var.changedTick = tick
+  -- open hover and signature popup if appropriate
+  checkHover()
 
   local line_to_cursor, from_column, prefix = getPositionalParams()
-  local src = sources.getCurrent()
-
-  -- print(#prefix, Var.oldPrefixLen, sources.getCurrent().triggerLength)
 
   -- don't proceed when backspacing in insert mode, or when typing a new word
-  local word_too_short = ( #prefix < Var.oldPrefixLen and not pumvisible() ) or
-                         #prefix < sources.getCurrent().triggerLength
-
+  local word_too_short = #prefix < sources.getCurrent().triggerLength
   Var.oldPrefixLen = #prefix
+
   if word_too_short then return popup.dismiss() end
 
-  if pumvisible() then return end
+  -- stop if no new character has been inserted
+  if not Var.insertChar then return end
+
+  local src = sources.getCurrent()
 
   local can_try = Var.forceCompletion or
                   util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
                   util.checkRegexes(line_to_cursor, sources.getRegexes(src))
 
   if can_try then
-    -- print(vim.inspect(src.methods, prefix, from_column))
+    -- print(vim.inspect(src.methods), prefix, from_column)
     completion.perform(src, prefix, from_column)
   end
 end
@@ -161,17 +171,6 @@ local function getCompletionItems(items_array, prefix)
     vim.list_extend(src, func(prefix, util.fuzzy_score))
   end
   return src
-end
-
--- this is where the completion popup actually opens
-local function openPopup(from_column, items)
-  vim.fn.complete(from_column, items)
-  if vim.g.autocomplete.auto_hover == 1 then
-    hover.autoOpenHoverInPopup()
-  end
-  if vim.g.autocomplete.auto_signature == 1 then
-    signature.autoOpenSignatureHelp()
-  end
 end
 
 -- this handles stock vim ins-completion methods
@@ -205,7 +204,7 @@ local function blockingCompletion(methods, prefix, from_column)
     util.sort_completion_items(items)
   end
   if #items ~= 0 then
-    openPopup(from_column+1, items)
+    vim.fn.complete(from_column+1, items)
   else
     Var.changeSource = true
   end
@@ -280,7 +279,7 @@ function asynch.completion(methods, prefix, from_column)
         util.sort_completion_items(items)
       end
       if #items ~= 0 then
-        openPopup(from_column+1, items)
+        vim.fn.complete(from_column+1, items)
       else
         Var.changeSource = true
       end
