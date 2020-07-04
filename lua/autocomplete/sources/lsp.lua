@@ -67,6 +67,10 @@ local function text_document_completion_list_to_complete_items(result, prefix)
   return matches
 end
 
+local function has_clients()
+  return next(vim.lsp.buf_get_clients()) ~= nil
+end
+
 function M.getCallback()
   return M.callback
 end
@@ -75,7 +79,7 @@ function M.triggerFunction(prefix)
   local params = vim.lsp.util.make_position_params()
   M.callback = false
   M.items = {}
-  if #vim.lsp.buf_get_clients() == 0 then
+  if not has_clients() then
     M.callback = true
     return
   end
