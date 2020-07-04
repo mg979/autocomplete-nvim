@@ -112,9 +112,6 @@ end
 
 -- check if hover or signature popup should open
 local function checkHover()
-  local tick = vim.api.nvim_buf_get_changedtick(0)
-  if tick == Var.changedTick then return end
-  Var.changedTick = tick
   if vim.g.autocomplete.auto_hover == 1 then
     hover.autoOpenHoverInPopup()
   end
@@ -123,11 +120,26 @@ local function checkHover()
   end
 end
 
+-- verify that there were changes to buffer
+local function changedTick()
+  local tick = vim.api.nvim_buf_get_changedtick(0)
+  if tick == Var.changedTick then return false end
+  Var.changedTick = tick
+  return true
+end
+
 -- test if completion can be triggered, if this will result in a completion
 -- popup will obviously depend on whether there are candidates for the prefix
 function completion.try()
+  -- do nothing if no changes to buffer
+  if not changedTick() then return end
+
   -- asynch completion timer in progress
   if not Var.canTryCompletion then return end
+
+  -- verify that there's some source
+  local src = sources.getCurrent()
+  if not src then return end
 
   -- change source if no item is available from previous attempt
   if Var.changeSource then
@@ -141,15 +153,13 @@ function completion.try()
   local line_to_cursor, from_column, prefix = getPositionalParams()
 
   -- don't proceed when backspacing in insert mode, or when typing a new word
-  local word_too_short = #prefix < sources.getCurrent().triggerLength
+  local word_too_short = #prefix < src.triggerLength
   Var.oldPrefixLen = #prefix
 
   if word_too_short then return popup.dismiss() end
 
   -- stop if no new character has been inserted
   if not Var.insertChar then return end
-
-  local src = sources.getCurrent()
 
   local can_try = Var.forceCompletion or
                   util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
