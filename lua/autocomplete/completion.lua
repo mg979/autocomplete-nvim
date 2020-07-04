@@ -289,6 +289,7 @@ function asynch.completion(methods, prefix, from_column)
       if #items ~= 0 then
         vim.fn.complete(from_column+1, items)
       else
+        Var.changedTick = 0 -- to bypass completion.try() check
         Var.changeSource = true
       end
     end
