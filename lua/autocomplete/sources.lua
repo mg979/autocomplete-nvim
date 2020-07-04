@@ -8,7 +8,7 @@ local Var = require 'autocomplete.manager'
 local M = {}
 local G = vim.g.autocomplete
 local is_keyword = '\\<\\k\\+'
-local is_slash = vim.fn.has('win32') and {':\\'} or {'/'}
+local is_slash = vim.fn.has('win32') == 1 and {':\\'} or {'/'}
 
 
 ----------------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ M.builtin = {
     asynch = true,
     triggerLength = G.trigger_length.path,
     triggers = is_slash,
-    regexes = vim.fn.has('win32') and {'\\\\\\f\\+'} or {'/\\f\\+'},
+    regexes = vim.fn.has('win32') == 1 and {'\\\\\\f\\+'} or {'/\\f\\+'},
   },
 }
 
