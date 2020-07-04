@@ -1,7 +1,6 @@
 local util = require 'autocomplete.util'
 local sources = require 'autocomplete.sources'
 local M = {}
-local G = vim.g.autocomplete
 
 -- Chains are obtained from the current value of g:autocomplete.chains, or
 -- from b:autocomplete_chain if it exists. A chain is a list of completion
@@ -37,7 +36,7 @@ local function getScopedChain(ft_chain)
     return { 'path', 'keyn' }
   else
     -- return the default chain
-    return G.default_chain or { { 'snippet', 'lsp' }, 'path', 'keyn', 'c-n' }
+    return vim.g.autocomplete.default_chain or { { 'snippet', 'lsp' }, 'path', 'keyn', 'c-n' }
   end
 end
 
@@ -96,7 +95,7 @@ function M.getChain(filetype)
   end
 
   -- trigger length to be used for method if it doesn't define it in its table
-  local defaultTriggerLength = G.trigger_length.default or 2
+  local defaultTriggerLength = vim.g.autocomplete.trigger_length.default or 2
 
   local validated = {}
   for _, m in ipairs(chain) do

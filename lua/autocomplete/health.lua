@@ -9,7 +9,6 @@ local health_info = vim.fn['health#report_info']
 local health_error = vim.fn['health#report_error']
 
 local M = {}
-local G = vim.g.autocomplete
 
 local function validateChain(chain, ft, scope)
   local Ft, Hl, error = false
@@ -28,10 +27,12 @@ local function checkCompletionSource()
   local error = false
 
   -- vim.g.autocomplete.chains is a simple list
-  if util.is_list(G.chains) then return validateChain(G.chains) end
+  if util.is_list(vim.g.autocomplete.chains) then
+    return validateChain(vim.g.autocomplete.chains)
+  end
 
   -- vim.g.autocomplete.chains has filetypes
-  for filetype, ft_chain in pairs(G.chains) do
+  for filetype, ft_chain in pairs(vim.g.autocomplete.chains) do
     if util.is_list(ft_chain) then
       if not validateChain(ft_chain, filetype) then error = true end
     else

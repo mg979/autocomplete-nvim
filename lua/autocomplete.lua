@@ -6,7 +6,6 @@ local hover = require'autocomplete.hover'
 local Var = require 'autocomplete.manager'
 
 local M = {}
-local G = vim.g.autocomplete
 
 
 
@@ -136,7 +135,7 @@ function M.hasConfirmedCompletion()
   if completed_item.user_data.lsp ~= nil then
     PostCompletionEdits(completed_item)
   end
-  if G.auto_paren == 1 then
+  if vim.g.autocomplete.auto_paren == 1 then
     AddParens(completed_item)
   end
   if completed_item.kind == 'UltiSnips' then

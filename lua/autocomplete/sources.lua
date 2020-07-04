@@ -6,7 +6,6 @@ local path = require 'autocomplete.sources.path'
 local Var = require 'autocomplete.manager'
 
 local M = {}
-local G = vim.g.autocomplete
 local is_keyword = '\\<\\k\\+'
 local is_slash = vim.fn.has('win32') == 1 and {':\\'} or {'/'}
 
@@ -33,18 +32,18 @@ M.builtin = {
     asynch = true,
     triggers = M.lspTriggers,
     regexes = {is_keyword},
-    triggerLength = G.trigger_length.lsp
+    triggerLength = vim.g.autocomplete.trigger_length.lsp
   },
   ['snippet'] = {
     items = snippet.getSnippets,
-    triggerLength = G.trigger_length.snippet
+    triggerLength = vim.g.autocomplete.trigger_length.snippet
   },
   ['path'] = {
     generateItems = path.triggerFunction,
     callback = path.getCallback,
     items = path.getPaths,
     asynch = true,
-    triggerLength = G.trigger_length.path,
+    triggerLength = vim.g.autocomplete.trigger_length.path,
     triggers = is_slash,
     regexes = vim.fn.has('win32') == 1 and {'\\\\\\f\\+'} or {'/\\f\\+'},
   },
