@@ -38,6 +38,7 @@ end
 
 -- handle completion confirmation and dismiss hover popup
 function M.on_CompleteDone()
+  Var.forceCompletion = false
   if Var.confirmedCompletion then
     Var.confirmedCompletion = false
     M.hasConfirmedCompletion()
