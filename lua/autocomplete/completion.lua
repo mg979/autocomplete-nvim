@@ -182,7 +182,8 @@ end
 local function getCompletionItems(items_array, prefix)
   local src = {}
   for _,func in ipairs(items_array) do
-    vim.list_extend(src, func(prefix, util.fuzzy_score))
+    local res = func(prefix, util.fuzzy_score)
+    if res then vim.list_extend(src, func(prefix, util.fuzzy_score)) end
   end
   return src
 end

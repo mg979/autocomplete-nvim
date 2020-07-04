@@ -46,28 +46,37 @@ local function checkCompletionSource()
 end
 
 local function checkSnippetSource()
-  if G.snippets == "" then
-    health_info("You haven't setup any snippet source. UltiSnips, Neosnippet, vim-vsnip are supported.")
-  elseif G.snippets == 'UltiSnips' then
+  local plugin
+  if vim.g.autocomplete.snippets ~= '' then
+    plugin = vim.g.autocomplete.snippets
+  elseif vim.fn.exists("*UltiSnips#SnippetsInCurrentScope") ~= 0 then
+    plugin = 'UltiSnips'
+  elseif vim.fn.exists("*neosnippet#helpers#get_completion_snippets") ~= 0 then
+    plugin = 'Neosnippet'
+  elseif vim.fn.exists('g:loaded_vsnip') ~= 0 then
+    plugin = 'vim-vsnip'
+  end
+
+  if plugin == 'UltiSnips' then
     if string.match(api.nvim_get_option("rtp"), ".*ultisnips.*") then
       health_ok("You are using UltiSnips as your snippet source.")
     else
-      health_error("UltiSnips is not available! Check if you install Ultisnips correctly.")
+      health_error("UltiSnips is not available! Check if you installed Ultisnips correctly.")
     end
-  elseif G.snippets == 'Neosnippet' then
+  elseif plugin == 'Neosnippet' then
     if string.match(api.nvim_get_option("rtp"), ".*neosnippet.vim.*") == 1 then
       health_ok("You are using Neosnippet as your snippet source.")
     else
-      health_error("Neosnippet is not available! Check if you install Neosnippet correctly.")
+      health_error("Neosnippet is not available! Check if you installed Neosnippet correctly.")
     end
-  elseif G.snippets == 'vim-vsnip' then
+  elseif plugin == 'vim-vsnip' then
     if string.match(api.nvim_get_option("rtp"), ".*vsnip.*") then
       health_ok("You are using vim-vsnip as your snippet source.")
     else
-      health_error("vim-vsnip is not available! Check if you install vim-vsnip correctly.")
+      health_error("vim-vsnip is not available! Check if you installed vim-vsnip correctly.")
     end
   else
-    health_error("Your snippet source is not available! possible value are: UltiSnips, Neosnippet, vim-vsnip")
+    health_info("You haven't setup any snippet source. UltiSnips, Neosnippet, vim-vsnip are supported.")
   end
 end
 
