@@ -2,6 +2,7 @@ local vim = vim
 local Var = require 'autocomplete.manager'
 local util = require 'autocomplete.util'
 local sources = require 'autocomplete.sources'
+local chains = require 'autocomplete.chains'
 local hover = require'autocomplete.hover'
 local signature = require'autocomplete.signature_help'
 
@@ -141,6 +142,7 @@ function completion.try()
   if not Var.canTryCompletion then return end
 
   -- verify that there's some source
+  Var.activeChain = chains.getChain()
   local src = sources.getCurrent()
   if not src then return end
 

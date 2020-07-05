@@ -33,10 +33,10 @@ let s:autocomplete = {
 call extend(g:autocomplete, s:autocomplete, 'keep')
 
 let g:autocomplete.chains = get(g:autocomplete, 'chains', {
-      \   'default': [
-      \       ['snippet', 'lsp'], 'keyn', 'file', 'c-n'
-      \   ]
-      \})
+      \   'default': {
+      \      'comment': [ 'path', 'keyn' ],
+      \      'default': [ ['snippet', 'lsp'], 'keyn', 'file' ]
+      \}})
 
       " \       ['snippet', 'lsp'], 'path', 'keyn', 'omni'
 command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()

@@ -225,8 +225,8 @@ OPTIONS                                                 *autocomplete-options*
     been defined by the user. It is actually a scoped chain:
 >
     'default' : {
-      'comment': [ 'keyn' ],
-      'default': [ ['lsp', 'snippet'], 'path', 'keyn' ]
+      'comment': [ 'path', 'keyn' ],
+      'default': [ 'snippet', 'lsp', 'path', 'keyn' ]
     }
 <
     That is, it will only complete words from the current buffers when inside

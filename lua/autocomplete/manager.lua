@@ -15,14 +15,14 @@ manager = {
   changeSource = false,        -- handle auto changing source when current chain has no results
   confirmedCompletion = false, -- flag for manual confirmation of completion
   forceCompletion = false,     -- flag for forced manual completion (generally when auto_popup is off)
-  activeChain = {},            -- currently used completion chain
+  activeChain = nil,           -- currently used completion chain
   chainIndex = 1,              -- current index in loaded chain
   oldPrefixLen = 0,            -- keeps track of the lenght of the typed word, for triggers/backspace
 }
 
 function manager.init()
   -- this is run on InsertEnter
-  manager.activeChain         = require'autocomplete.chains'.getChain(vim.bo.filetype)
+  manager.activeChain         = nil
   manager.insertLeave         = false
   manager.oldPrefixLen        = 0
   manager.canTryCompletion    = true

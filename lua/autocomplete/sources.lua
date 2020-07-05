@@ -68,15 +68,9 @@ M.ctrlx = {
 }
 
 function M.lspTriggerCharacters()
-  for _, src in ipairs(Var.activeChain) do
-    for _, item in ipairs(src.methods) do
-      if item == 'lsp' then
-        for _, client in pairs(vim.lsp.buf_get_clients()) do
-          if client.server_capabilities.completionProvider ~= nil then
-            return client.server_capabilities.completionProvider.triggerCharacters
-          end
-        end
-      end
+  for _, client in pairs(vim.lsp.buf_get_clients()) do
+    if client.server_capabilities.completionProvider ~= nil then
+      return client.server_capabilities.completionProvider.triggerCharacters
     end
   end
   return nil

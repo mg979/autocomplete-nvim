@@ -19,29 +19,44 @@ local M = {}
 -- }
 
 
+
+------------------------------------------------------------------------
+--                           local defaults                           --
+------------------------------------------------------------------------
+
+-- trigger length to be used for method if it doesn't define it in its table
+local defaultTriggerLength = vim.g.autocomplete.trigger_length.default or 2
+
+-- regex triggers to be used for method if it doesn't define any in its table
+local defaultRegexes = {'\\<\\k\\+'}
+
+-- default chain to be used if no valid chain can be fetched from definitions
+local defaultScopedChain = {
+    comment = { 'path', 'keyn' },
+    default = { {'snippet', 'lsp'}, 'path', 'keyn' }
+  }
+
+
 ------------------------------------------------------------------------
 --                  local functions to parse chains                   --
 ------------------------------------------------------------------------
 
 local function getScopedChain(ft_chain)
+  -- a generic chain, not filetype-specific
+  if util.is_list(ft_chain) then return ft_chain end
+
   local atPoint = util.syntaxAtCursor():lower()
   -- check if the filetype chain has a match for the current scope
   for syntax, chain in pairs(ft_chain) do
-    if string.match(atPoint, '.*' .. syntax:lower() .. '.*') then
+    if syntax ~= 'default' and string.match(atPoint, '.*' .. syntax:lower() .. '.*') then
       return chain
     end
   end
-  -- by default, in comments only complete paths and words from this buffer
-  if string.match(atPoint, '.*comment.*') then
-    return { 'path', 'keyn' }
-  else
-    -- return the default chain
-    return vim.g.autocomplete.default_chain or { { 'snippet', 'lsp' }, 'path', 'keyn', 'c-n' }
-  end
-end
+  -- default chain for unmatched syntaxes exists
+  if ft_chain.default then return ft_chain.default end
 
-local function getInnerChain(chains)
-  return util.is_list(chains) and chains or getScopedChain(chains)
+  -- nothing matches, process the default chain
+  return getScopedChain(vim.g.autocomplete.default_chain or defaultScopedChain)
 end
 
 local function getGlobalChain(filetype)
@@ -49,11 +64,11 @@ local function getGlobalChain(filetype)
   if util.is_list(chains) then
     return chains
   elseif chains[filetype] then
-    return getInnerChain(chains[filetype])
+    return chains[filetype]
   elseif chains.default then
-    return getInnerChain(chains.default)
+    return chains.default
   else
-    return getScopedChain({})
+    return vim.g.autocomplete.default_chain or defaultScopedChain
   end
 end
 
@@ -73,30 +88,24 @@ function M.validateChainItem(item)
          not sources.ctrlx[item] then
     return nil
   end
+  -- fix mandatory missing members in valid sources
+  if sources.builtin[item] then
+    -- an item must have some way of being triggered
+    if not sources.builtin[item].triggers and
+       not sources.builtin[item].regexes then
+      sources.builtin[item].regexes = defaultRegexes
+    end
+    -- make sure the method has a defined triggerLength
+    if not sources.builtin[item].triggerLength then
+      sources.builtin[item].triggerLength = defaultTriggerLength
+    end
+  end
   return item
 end
 
-
-------------------------------------------------------------------------
---                        main module function                        --
-------------------------------------------------------------------------
-
-function M.getChain(filetype)
-  -- return previously generated chain
-  if vim.b._autocomplete_chain then return vim.b._autocomplete_chain end
-  -- chain could be local to buffer
-  local chain, ft_chain = vim.b.autocomplete_chain
-  if ft_chain ~= nil then
-    -- if it is, it could be a simple list, or a table with scopes
-    chain = util.is_list(ft_chain) and ft_chain or getScopedChain(ft_chain)
-  else
-    -- if it's not, use the global chains definitions
-    chain = getGlobalChain(filetype)
-  end
-
-  -- trigger length to be used for method if it doesn't define it in its table
-  local defaultTriggerLength = vim.g.autocomplete.trigger_length.default or 2
-
+-- each validated element must be converted to a table
+-- this process takes place once when the buffer-local chain is assigned
+local function convertChain(chain)
   local validated = {}
   for _, m in ipairs(chain) do
     if M.validateChainItem(m) then
@@ -123,7 +132,7 @@ function M.getChain(filetype)
           end
           item.triggerLength = tl
         else
-          item.asynch = m.asynch
+          item.asynch = sources.builtin[m].asynch or false
           item.methods = {m}
           item.triggerLength = sources.builtin[m].triggerLength or defaultTriggerLength
         end
@@ -131,9 +140,35 @@ function M.getChain(filetype)
       table.insert(validated, item)
     end
   end
+  return validated
+end
+
+
+------------------------------------------------------------------------
+--                        main module function                        --
+------------------------------------------------------------------------
+
+local function bufferChain(filetype)
+  -- return previously generated chain
+  if vim.b._autocomplete_chain then return vim.b._autocomplete_chain end
+  -- chain could be local to buffer
+  local chain = vim.b.autocomplete_chain or getGlobalChain(filetype)
+
+  local validated = {}
+  if util.is_list(chain) then
+    validated = convertChain(chain)
+  else
+    for scope, scopedChain in pairs(chain) do
+      validated[scope] = convertChain(scopedChain)
+    end
+  end
   -- store chain in buffer variable
   util.setBufVar('_autocomplete_chain', validated)
   return validated
+end
+
+function M.getChain()
+  return getScopedChain(bufferChain(vim.bo.filetype))
 end
 
 
