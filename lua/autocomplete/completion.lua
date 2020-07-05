@@ -165,9 +165,14 @@ function completion.try()
                   util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
                   util.checkRegexes(line_to_cursor, sources.getRegexes(src))
 
+  -- print(vim.inspect(src.methods), prefix, can_try)
+
   if can_try then
-    -- print(vim.inspect(src.methods), prefix, from_column)
     completion.perform(src, prefix, from_column)
+  -- not because a method can't be tried we're blocking the whole chain...
+  -- but if it's the last chain this could lead to an endless loop
+  elseif Var.chainIndex ~= #Var.activeChain then
+    completion.nextSource()
   end
 end
 
