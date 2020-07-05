@@ -59,6 +59,11 @@ function M.manualCompletion()
   return ''
 end
 
+function M.showHover()
+  if not hover.winnr then hover.autoOpenHoverInPopup() end
+  return ''
+end
+
 -- provide api for custom sources
 function M.addSource(key, value)
   if sources.builtin[key] or sources.ctrlx[key] then
