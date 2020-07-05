@@ -12,7 +12,7 @@ local pumvisible = function() return vim.fn.pumvisible() == 1 end
 
 -- <c-g><c-g> sequence is used to dismiss popup and reset completion method
 local cgcg = vim.api.nvim_replace_termcodes("<c-g><c-g>", true, false, true)
-local insc = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, false, true)
+local insplug = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, false, true)
 
 
 
@@ -192,19 +192,18 @@ end
 local function insCompletion(mode)
   -- if popup is visible we don't have to mess with vim completion
   if pumvisible() then return end
-  local keys = sources.ctrlx[mode]
   -- calling a completion method when the option is not set would cause an error
-  if keys == "<c-x><c-o>" and vim.bo.omnifunc == "" then return end
-  if keys == "<c-x><c-u>" and vim.bo.completefunc == "" then return end
-  if keys == "<c-x>s" and not vim.wo.spell then return end
+  if mode == "omni" and vim.bo.omnifunc == "" then return end
+  if mode == "user" and vim.bo.completefunc == "" then return end
+  if mode == "spel" and not vim.wo.spell then return end
   -- if the keys won't be followed by a popup, we'll change source
+  local keys = sources.ctrlx[mode]
   keys = keys .. "<c-r>=pumvisible()?'':autocomplete#nextSource()<cr>"
   -- see https://github.com/neovim/neovim/issues/12297
   keys = vim.api.nvim_replace_termcodes(keys, true, false, true)
-  -- this variable holds the keys that will be inserted in 'silent' mode by the
-  -- <Plug>(InsCompletion) defined in plugin/autocomplete.vim
+  -- this variable holds the keys that will by <Plug>(InsCompletion)
   vim.g.autocomplete_inscompletion = keys
-  vim.api.nvim_feedkeys(insc, 'm', true)
+  vim.api.nvim_feedkeys(insplug, 'm', true)
 end
 
 local function blockingCompletion(methods, prefix, from_column)
