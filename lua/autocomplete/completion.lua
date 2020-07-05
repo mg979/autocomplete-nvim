@@ -78,7 +78,7 @@ function popup.manual()
   if pumvisible() or not Var.canTryCompletion then
     return completion.retry() -- manual completion will be retriggered
   end
-  -- set this variables to pass the tests in completion.try()
+  -- set these variables to pass the tests in completion.try()
   Var.changedTick = 0
   Var.insertChar = true
   completion.try()
@@ -206,9 +206,12 @@ local function blockingCompletion(methods, prefix, from_column)
   local items_array = {}
   for _, m in ipairs(methods) do
     local source = sources.builtin[m]
-    if source.generateItems then source.generateItems(prefix, from_column) end
-    if source.items then table.insert(items_array, source.items) end
+    if Var.forceCompletion or source.triggerLength <= #prefix then
+      if source.generateItems then source.generateItems(prefix, from_column) end
+      if source.items then table.insert(items_array, source.items) end
+    end
   end
+  if not next(items_array) then return completion.nextSource() end
   local items = getCompletionItems(items_array, prefix)
   if vim.g.autocomplete.sorting ~= "none" then
     util.sort_completion_items(items)
@@ -264,13 +267,16 @@ function asynch.completion(methods, prefix, from_column)
   local items_array = {}
   for _, s in ipairs(methods) do
     local src = sources.builtin[s]
-    -- treat as blocking by default
-    table.insert(callback_array, src.callback or true)
-    -- a bit messy: we can have only src.items or we can have both
-    -- src.generateItems and src.items (both must be functions)
-    if src.generateItems then src.generateItems(prefix, from_column) end
-    if src.items then table.insert(items_array, src.items) end
+    -- we include the source in the popup only if we typed enough characters
+    if Var.forceCompletion or src.triggerLength <= #prefix then
+      table.insert(callback_array, src.callback or true)
+      -- a bit messy: we can have only src.items or we can have both
+      -- src.generateItems and src.items (both must be functions)
+      if src.generateItems then src.generateItems(prefix, from_column) end
+      if src.items then table.insert(items_array, src.items) end
+    end
   end
+  if not next(items_array) then return completion.nextSource() end
 
   asynch.timer = vim.loop.new_timer()
   asynch.timer:start(20, 50, vim.schedule_wrap(function()

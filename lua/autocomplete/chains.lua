@@ -117,7 +117,7 @@ local function convertChain(chain)
         item.triggerLength = defaultTriggerLength
       else
         if util.is_list(m) then
-          local tl = 0
+          local tl
           item.methods = m
           item.asynch = false
           for _, v in ipairs(m) do
@@ -126,7 +126,7 @@ local function convertChain(chain)
               item.asynch = true
             end
             -- item.triggerLength will be the highest of the methods triggerLength's
-            if sources.builtin[v].triggerLength > tl then
+            if not tl or sources.builtin[v].triggerLength < tl then
               tl = sources.builtin[v].triggerLength
             end
           end

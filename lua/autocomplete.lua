@@ -18,6 +18,7 @@ function M.on_InsertCharPre()
   Var.insertChar = true
   Var.textHover = true
   Var.selected = -1
+  -- inserting a character and no popup? then reset chain
   if vim.fn.pumvisible() == 0 then
     Var.chainIndex = 1
   end
