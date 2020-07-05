@@ -10,11 +10,11 @@ function M.is_list(thing)
     return vim.fn.type(thing) == api.nvim_get_vvar("t_list")
 end
 
--- function M.isInsertMode()
---   local mode = api.nvim_get_mode()['mode']
---   return mode == 'i' or mode == 'ic' or
---          mode == 'R' or mode == 'Rc' or mode == 'RV'
--- end
+function M.isInsertMode()
+  local mode = api.nvim_get_mode()['mode']
+  return mode == 'i' or mode == 'ic' or
+         mode == 'R' or mode == 'Rc' or mode == 'RV'
+end
 
 function M.syntaxAtCursor()
   local pos = api.nvim_win_get_cursor(0)

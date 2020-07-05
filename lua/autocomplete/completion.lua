@@ -105,6 +105,7 @@ function popup.auto.start()
   popup.timer = vim.loop.new_timer()
 
   popup.timer:start(100, vim.g.autocomplete.timer_cycle, vim.schedule_wrap(function()
+    if not util.isInsertMode() then return popup.auto.stop() end
     completion.try()
   end))
 end
@@ -285,7 +286,8 @@ function asynch.completion(methods, prefix, from_column)
 
   asynch.timer = vim.loop.new_timer()
   asynch.timer:start(20, 50, vim.schedule_wrap(function()
-    if asynch.timer:is_closing() then return
+    if not util.isInsertMode() then return asynch.stop()
+    elseif asynch.timer:is_closing() then return
       -- a character has been inserted, or insert mode has been left
     elseif Var.insertChar or Var.insertLeave then asynch.stop()
       -- only perform complete when callback_array are all true
