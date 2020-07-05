@@ -76,6 +76,7 @@ fun! autocomplete#nextSource() abort
 endfun
 
 fun! autocomplete#changeSource(dir) abort
+  lua require'autocomplete.manager'.forceCompletion = true
   let ret = complete_info().selected >= 0 ? "\<C-e>" : ''
   return ret . "\<C-r>=luaeval(\"require'autocomplete.completion'.".a:dir."Source()\")\<CR>"
 endfun

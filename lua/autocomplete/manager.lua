@@ -12,9 +12,8 @@ manager = {
   textHover = false,           -- handle auto hover
   selected = -1,               -- handle selected items in v:complete-items for auto hover
   changedTick = 0,             -- handle changeTick
-  changeSource = false,        -- handle auto changing source when current chain has no results
   confirmedCompletion = false, -- flag for manual confirmation of completion
-  forceCompletion = false,     -- flag for forced manual completion (generally when auto_popup is off)
+  forceCompletion = false,     -- flag for forced manual completion/source change
   activeChain = nil,           -- currently used completion chain
   chainIndex = 1,              -- current index in loaded chain
   oldPrefixLen = 0,            -- keeps track of the lenght of the typed word, for triggers/backspace
@@ -29,7 +28,6 @@ function manager.init()
   manager.insertChar          = false
   manager.textHover           = false
   manager.selected            = -1
-  manager.changeSource        = false
   manager.confirmedCompletion = false
   manager.forceCompletion     = false
   manager.chainIndex          = 1
@@ -47,7 +45,6 @@ function manager.debug()
   'textHover = '           .. vim.inspect(manager.textHover)           .. '\n' ..
   'selected = '            .. vim.inspect(manager.selected)            .. '\n' ..
   'changedTick = '         .. vim.inspect(manager.changedTick)         .. '\n' ..
-  'changeSource = '        .. vim.inspect(manager.changeSource)        .. '\n' ..
   'confirmedCompletion = ' .. vim.inspect(manager.confirmedCompletion) .. '\n' ..
   'forceCompletion = '     .. vim.inspect(manager.forceCompletion)     .. '\n' ..
   'chainIndex = '          .. vim.inspect(manager.chainIndex)          .. '\n' ..

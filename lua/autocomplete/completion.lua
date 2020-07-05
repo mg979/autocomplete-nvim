@@ -146,12 +146,6 @@ function completion.try()
   local src = sources.getCurrent()
   if not src then return end
 
-  -- change source if no item is available from previous attempt
-  if Var.changeSource then
-    Var.changeSource = false
-    return completion.nextSource()
-  end
-
   checkHover() -- open hover and signature popup if appropriate
 
   local line_to_cursor, from_column, prefix = getPositionalParams()
@@ -222,7 +216,7 @@ local function blockingCompletion(methods, prefix, from_column)
   if #items ~= 0 then
     vim.fn.complete(from_column+1, items)
   else
-    Var.changeSource = true
+    completion.nextSource()
   end
 end
 
@@ -293,8 +287,7 @@ function asynch.completion(methods, prefix, from_column)
       if #items ~= 0 then
         vim.fn.complete(from_column+1, items)
       else
-        Var.changedTick = 0 -- to bypass completion.try() check
-        Var.changeSource = true
+        completion.nextSource()
       end
     end
   end))
@@ -306,8 +299,8 @@ end
 
 local function stopChanging()
   -- manual completion flag must be reset if no completions are found
-  Var.forceCompletion = false
-  if pumvisible() then
+  if pumvisible() or Var.forceCompletion then
+    Var.forceCompletion = false
     completion.retry() -- bring back last possible completion
   else
     vim.api.nvim_feedkeys(cgcg, 'n', true) -- reset vim completion mode

@@ -14,6 +14,7 @@ local M = {}
 ------------------------------------------------------------------------
 
 function M.on_InsertCharPre()
+  Var.forceCompletion = false
   Var.insertChar = true
   Var.textHover = true
   Var.selected = -1
@@ -37,7 +38,6 @@ end
 
 -- handle completion confirmation and dismiss hover popup
 function M.on_CompleteDone()
-  Var.forceCompletion = false
   if Var.confirmedCompletion then
     Var.confirmedCompletion = false
     M.hasConfirmedCompletion()
