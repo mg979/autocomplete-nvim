@@ -18,7 +18,7 @@ local insplug = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, fa
 
 
 ------------------------------------------------------------------------
---                     initialize/reset completion                    --
+--                     initialize/retry completion                    --
 ------------------------------------------------------------------------
 
 -- init completion source and variables
@@ -42,13 +42,52 @@ end
 
 
 
+
 ------------------------------------------------------------------------
---                           popup controls                           --
+--                            local helpers                           --
 ------------------------------------------------------------------------
+
+-- check if hover or signature popup should open
+local function checkHover()
+  if vim.g.autocomplete.auto_hover == 1 then
+    hover.autoOpenHoverInPopup()
+  end
+  if vim.g.autocomplete.auto_signature == 1 then
+    signature.autoOpenSignatureHelp()
+  end
+end
+
+-- verify that there were changes to buffer
+local function changedTick()
+  local tick = vim.api.nvim_buf_get_changedtick(0)
+  if tick == Var.changedTick then return false end
+  Var.changedTick = tick
+  return true
+end
+
+-- run the functions that will fetch the completion items for custom methods
+local function getCompletionItems(items_array, prefix)
+  local src = {}
+  for _,func in ipairs(items_array) do
+    local res = func(prefix, util.fuzzy_score)
+    if res then vim.list_extend(src, func(prefix, util.fuzzy_score)) end
+  end
+  return src
+end
+
+-- return true when all callbacks in array are true
+local function checkCallback(callback_array)
+  for _,val in ipairs(callback_array) do
+    if not val or type(val) == 'function' and not val() then
+      return false
+    end
+  end
+  return true
+end
 
 ------------------------------------------------------------------------
 -- getPositionalParams returns 3 values:
-
+--
 -- line_to_cursor:  the string with the part of the line up to the cursor
 -- from_column:     the column at which the current prefix starts
 -- prefix:          the part of the word for which we could find a completion
@@ -63,11 +102,16 @@ local function getPositionalParams()
 end
 
 
+
+
+------------------------------------------------------------------------
+--                           popup controls                           --
+------------------------------------------------------------------------
+
 -- feed the key sequence that resets completion
 function popup.dismiss()
   if pumvisible() then
     vim.fn.complete(vim.api.nvim_win_get_cursor(0)[2], {})
-    -- vim.api.nvim_feedkeys(cgcg, 'n', true)
   end
 end
 
@@ -103,7 +147,6 @@ end
 
 function popup.auto.start()
   popup.timer = vim.loop.new_timer()
-
   popup.timer:start(100, vim.g.autocomplete.timer_cycle, vim.schedule_wrap(function()
     if not util.isInsertMode() then return popup.auto.stop() end
     completion.try()
@@ -111,30 +154,29 @@ function popup.auto.start()
 end
 
 
+
 ------------------------------------------------------------------------
 --                 verify prerequisites for completion                --
 ------------------------------------------------------------------------
 
--- check if hover or signature popup should open
-local function checkHover()
-  if vim.g.autocomplete.auto_hover == 1 then
-    hover.autoOpenHoverInPopup()
-  end
-  if vim.g.autocomplete.auto_signature == 1 then
-    signature.autoOpenSignatureHelp()
-  end
-end
-
--- verify that there were changes to buffer
-local function changedTick()
-  local tick = vim.api.nvim_buf_get_changedtick(0)
-  if tick == Var.changedTick then return false end
-  Var.changedTick = tick
-  return true
-end
-
--- test if completion can be triggered, if this will result in a completion
--- popup will obviously depend on whether there are candidates for the prefix
+-- Test if completion can be triggered, if this will result in a completion
+-- popup will obviously depend on whether there are candidates for the prefix.
+-- Here we'll consider:
+--
+-- canTryCompletion:  flag for asynch completion in progress, nothing can be
+--                    done while this is false
+-- changedTick:       differently from insertChar, this is tested early, there
+--                    are other conditions that can change the tick, other than
+--                    insertChar
+-- check source:      check there is a valid chain/source
+-- prefix length:     auto popup should be only triggered after a certain number
+--                    of characters has been entered
+-- forceCompletion:   by manual completion or manual source change
+-- triggers/regex:    final test to see if the completion should be tried
+--
+-- If no completion can/should be tried for the current source, try the next
+-- one, unless already at the last chain.
+------------------------------------------------------------------------
 function completion.try()
   -- do nothing if no changes to buffer
   if not changedTick() then return end
@@ -177,21 +219,26 @@ function completion.try()
   end
 end
 
-------------------------------------------------------------------------
---                         perform completion                         --
-------------------------------------------------------------------------
 
-local function getCompletionItems(items_array, prefix)
-  local src = {}
-  for _,func in ipairs(items_array) do
-    local res = func(prefix, util.fuzzy_score)
-    if res then vim.list_extend(src, func(prefix, util.fuzzy_score)) end
+-- run the appropriate completion method
+function completion.perform(src, prefix, from_column)
+  if sources.ctrlx[src.methods[1]] then -- it's and ins-completion source
+    completion.ctrlx(src.methods[1])
+  elseif src.asynch then
+    asynch.completion(src.methods, prefix, from_column)
+  else
+    completion.blocking(src.methods, prefix, from_column)
   end
-  return src
 end
 
+
+
+------------------------------------------------------------------------
+--                        blocking completions                        --
+------------------------------------------------------------------------
+
 -- this handles stock vim ins-completion methods
-local function insCompletion(mode)
+function completion.ctrlx(mode)
   -- if popup is visible we don't have to mess with vim completion
   if pumvisible() then return end
   -- calling a completion method when the option is not set would cause an error
@@ -208,7 +255,8 @@ local function insCompletion(mode)
   vim.api.nvim_feedkeys(insplug, 'm', true)
 end
 
-local function blockingCompletion(methods, prefix, from_column)
+-- custom non-asynch completions
+function completion.blocking(methods, prefix, from_column)
   local items_array = {}
   for _, m in ipairs(methods) do
     local source = sources.builtin[m]
@@ -229,39 +277,10 @@ local function blockingCompletion(methods, prefix, from_column)
   end
 end
 
-function completion.perform(src, prefix, from_column)
-  if sources.ctrlx[src.methods[1]] then -- it's and ins-completion source
-    insCompletion(src.methods[1])
-  elseif src.asynch then
-    asynch.completion(src.methods, prefix, from_column)
-  else
-    blockingCompletion(src.methods, prefix, from_column)
-  end
-end
-
 
 ------------------------------------------------------------------------
 --                          asynch completion                         --
 ------------------------------------------------------------------------
-
--- stop current asynch completion timer
-function asynch.stop()
-  if asynch.timer and not asynch.timer:is_closing() then
-    asynch.timer:stop()
-    asynch.timer:close()
-  end
-  Var.canTryCompletion = true
-end
-
--- return true when all callbacks in array are true
-local function checkCallback(callback_array)
-  for _,val in ipairs(callback_array) do
-    if not val or type(val) == 'function' and not val() then
-      return false
-    end
-  end
-  return true
-end
 
 function asynch.completion(methods, prefix, from_column)
   -- we inform that there's a completion attempt running
@@ -305,6 +324,18 @@ function asynch.completion(methods, prefix, from_column)
     end
   end))
 end
+
+
+-- stop current asynch completion timer
+function asynch.stop()
+  if asynch.timer and not asynch.timer:is_closing() then
+    asynch.timer:stop()
+    asynch.timer:close()
+  end
+  Var.canTryCompletion = true
+end
+
+
 
 ------------------------------------------------------------------------
 --                           chain controls                           --
