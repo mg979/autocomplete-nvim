@@ -13,11 +13,9 @@ local function getUltisnipItems(prefix)
     return {}
   end
   local priority = vim.g.autocomplete.items_priority['UltiSnips'] or 1
+  -- fix lua parsing issue
+  snippetsList[true] = nil
   for key, val in pairs(snippetsList) do
-    -- fix lua parsing issue
-    if key == true then
-      key = 'true'
-    end
     local item = {}
     item.word = key
     item.kind = ' ↷  ' .. val
@@ -37,10 +35,9 @@ local function getNeosnippetItems(prefix)
     return {}
   end
   local priority = vim.g.autocomplete.items_priority['Neosnippet'] or 1
+  -- fix lua parsing issue
+  snippetsList[true] = nil
   for key, val in pairs(snippetsList) do
-    if key == true then
-      key = 'true'
-    end
     local user_data = {hover = val.description}
     local item = {}
     item.word = key
