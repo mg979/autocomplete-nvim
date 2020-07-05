@@ -1,45 +1,45 @@
 *autocomplete-nvim.txt*
-A async completion framework aims to provide completion to neovim's built in
-LSP written in Lua
 
 
 CONTENTS                                                   *autocomplete-nvim*
 
     1. Introduction ............... |autocomplete-introduction|
-    2. Features ................... |autocomplete-feature|
+    2. Features ................... |autocomplete-features|
     3. Prerequisite ............... |autocomplete-prerequisite|
     4. Setup ...................... |autocomplete-setup|
-    5. Options .................... |autocomplete-options|
-    6. Buffer-local options ....... |autocomplete-buffer-options|
+    5. Plugs ...................... |autocomplete-plugs|
+    6. Options .................... |autocomplete-options|
+    7. Buffer-local options ....... |autocomplete-buffer-options|
 
 
 
 ==============================================================================
 INTRODUCTION                                       *autocomplete-introdction*
 
-autocomplete-nvim is an auto completion framework that aims to provide
+|autocomplete-nvim| is an auto completion framework that aims to provide
 a better completion experience with neovim's built-in LSP.  Other LSP
-functionality is not supported.
+functionality is not supported. It also provides chained completion, inspired
+by |vim-mucomplete|.
 
 
 
 ==============================================================================
 FEATURES                                               *autocomplete-features*
 
-- Asynchronous completion using libuv api.
-- Automatically open hover windows when popupmenu is available.
-- Automatically open signature help if it's available.
-- Snippets integration with UltiSnips and Neosnippet and vim-vsnip.
-- ins-completion method integration
-- Apply additionalTextEdits in LSP spec if it's available.
-- Chain completion support inspired by vim-mucomplete
+- Asynchronous completion using libuv api
+- Optionally open hover windows when popupmenu is available
+- Optionally open signature help if it's available
+- Snippets integration: |UltiSnips|, |Neosnippet| and |vim-vsnip|
+- support for vim |ins-completion| methods
+- Apply additionalTextEdits in LSP spec if it's available
+- Chained completion inspired by |vim-mucomplete|
 
 
 
 ==============================================================================
 PREREQUISITES                                     *autocomplete-prerequisites*
 
-- Neovim 5.0
+- Neovim 0.5.0
 - |nvim-lsp| if you want to take advantage the LSP completions
 
 
@@ -50,24 +50,50 @@ SETUP                                                     *autocomplete-setup*
 - autocomplete-nvim requires several autocommands set up to work properly, you
   should set it up using the `on_attach` function like this.
 >
-  lua require'nvim_lsp'.pyls.setup{on_attach=require'autocomplete'.on_attach}
+  lua require'nvim_lsp'.pyls.setup{on_attach=require'autocomplete'.initialize}
 <
   (change `pyls` to whichever language server you are using)
 
 - If you want autocomplete-nvim to be set up for all buffers instead of only
-  being used when lsp is enabled, call the `on_attach` function directly:
+  being used when lsp is enabled, call the `initialize()` function directly:
 >
   " Use autocomplete-nvim in every buffer
-  autocmd BufEnter * lua require'autocomplete'.on_attach()
+  autocmd BufEnter * lua require'autocomplete'.initialize()
 <
-  Note: It's okay to set up autocomplete-nvim without lsp. It will simply
-  use another completion source instead(Ex: snippets).
+  Note: it's okay to set up autocomplete-nvim without lsp. It will simply
+  use other completion sources instead (snippets, |ins-completion|, additional
+  sources that you may provide).
+
+
+
+==============================================================================
+PLUGS                                                     *autocomplete-plugs*
+
+<Plug>(TabComplete)           Force completion, or select next completion in
+                              popup.
+
+<Plug>(Autocomplete)          Force completion.
+
+<Plug>(NextSource)            Move to next source in the currently active
+                              completion chain.
+
+<Plug>(PrevSource)            Move to previous source in the currently active
+                              completion chain.
+
+<Plug>(ConfirmCompletion)     As <C-Y>, but can also expand snippets.
+
+<Plug>(ShowHover)             Show the hover popup from insert mode (ONLY).
+                              Useful if you disable auto_hover but want to
+                              show it on demand.
 
 
 
 ==============================================================================
 OPTIONS                                                 *autocomplete-options*
 
+  Initialize the options dictionary first:
+>
+  let g:autocomplete = {}
 
 - - - - - - - - - - - - - - - - - - - - - - - - - *g:autocomplete.auto_popup*
 
@@ -76,7 +102,7 @@ OPTIONS                                                 *autocomplete-options*
 
     If you disable auto popup menu, you can manually trigger completion:
 >
-    imap <Tab> <Plug>(Autocomplete)
+    imap <Tab> <Plug>(TabComplete)
 <
     default value: 1
 
@@ -86,7 +112,9 @@ OPTIONS                                                 *autocomplete-options*
     You can specify which snippet engines you want to use. Possible values
     are |UltiSnips|, |Neosnippet| and |vim-vsnip|.
 
-    Note: Snippets will not be expanded without setting this variables.
+    Note: without setting this variable, |autocomplete-nvim| will try to
+    autodetect one of the plugins above, so you don't really need to set this
+    variable unless you want to enforce a specific snippet engine.
 
     default value: ""
 
@@ -100,10 +128,10 @@ OPTIONS                                                 *autocomplete-options*
 
 - - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.auto_hover*
 
-    autocomplete-nvim can automatically open a hover window when you navigate
-    through the complete items(including basic information of snippets).
+    |autocomplete-nvim| can automatically open a hover window when you navigate
+    through the complete items (including basic information of snippets).
 
-    default value: 0
+    default value: 1
 
 
 - - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.auto_paren*
@@ -149,22 +177,22 @@ OPTIONS                                                 *autocomplete-options*
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.chains*
 
-    autocomplete-nvim has chain completion support inspired by vim-mucomplete.
-    In short, you can divide completion sources in groups and have an
-    ins-completion method as backup completion. When a source fails to provide
-    completion items, the next one in the chain is attempted, until some
-    result is obtained, or all sources have been tried.
+    |autocomplete-nvim| has chain completion support inspired by
+    |vim-mucomplete|. In short, you can divide completion sources in groups
+    and have an |ins-completion| method as backup completion. When a source
+    fails to provide completion items, the next one in the chain is attempted,
+    until some completion is obtained, or all sources have been tried.
 
     You can specify different completion list for different filetypes. There
     are the following built-in completion sources:
 
     'lsp'       language-server protocol completion
-    'snippet'   snippet sources based on g:autocomplete.snippets
-    'path'      path completion relative to the current file.
+    'snippet'   snippet sources (see |g:autocomplete.snippets|)
+    'path'      path completion relative to the current file
 
     You can also include the regular |ins-completion| sources. You can group
     non-|ins-completion| sources in a list, in this case they will be merged
-    in the same popup.For example:
+    in the same popup. For example:
 >
     let g:autocomplete.chains = {
         \ 'python' : [ 'path', ['lsp', 'snippet'], 'keyn' ],
@@ -187,15 +215,15 @@ OPTIONS                                                 *autocomplete-options*
     `User defined completion`                           'user'    <c-x><c-u>
     `omni completion`                                   'omni'    <c-x><c-o>
     `Spelling suggestions`                              'spel'    <c-x>s
-    `keywords in 'complete'`                            'c-n'     <c-n>
-    `keywords in 'complete' (reversed)`                 'c-p'     <c-p>
+    `keywords in 'complete'`                            `'c-n'`     <c-n>
+    `keywords in 'complete' (reversed)`                 `'c-p'`     <c-p>
 
-    You can easily switch to next or previous sources by mapping keys in
+    You can easily switch to the next or previous sources by mapping keys in
     insert mode. For example, using <c-j> to switch to previous sources and
     <c-k> to switch to next sources:
 >
-    imap <c-j> <cmd>lua require'sources'.prevSource()<CR>
-    imap <c-k> <cmd>lua require'sources'.nextSource()<CR>
+    imap <c-j> <Plug>(NextSource)
+    imap <c-k> <Plug>(PrevSource)
 <
     You can also have different chains for different 'scopes', and different
     filetypes. By 'scope' is meant the syntax group at cursor position. In
