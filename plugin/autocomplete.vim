@@ -35,8 +35,8 @@ let g:autocomplete.chains = get(g:autocomplete, 'chains', {
       \      'default': [ ['snippet', 'lsp'], 'keyn', 'file' ]
       \}})
 
-      " \       ['snippet', 'lsp'], 'path', 'keyn', 'omni'
 command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()
+command! -bar LspTriggerCharacters   lua print(vim.inspect(require'autocomplete.sources'.lspTriggerCharacters()))
 
 inoremap <silent> <Plug>(TabComplete) <C-r>=autocomplete#tab()<CR>
 inoremap <silent> <Plug>(Autocomplete) <C-r>=luaeval("require'autocomplete'.manualCompletion()")<CR>
@@ -62,6 +62,7 @@ fun! autocomplete#attach() abort
   autocmd InsertCharPre <buffer> lua require'autocomplete'.on_InsertCharPre()
   autocmd CompleteDone  <buffer> lua require'autocomplete'.on_CompleteDone()
   let b:completion_auto_popup = get(g:autocomplete, 'auto_popup', 1)
+  let b:completion_triggers = get(b:, 'completion_triggers', {})
   if get(g:autocomplete, 'confirm_key', '') != ''
     exe 'imap' g:autocomplete.confirm_key '<Plug>(ConfirmCompletion)'
   endif

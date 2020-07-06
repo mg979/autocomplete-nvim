@@ -200,6 +200,7 @@ OPTIONS                                                 *autocomplete-options*
         \ 'lua': [ 'path', 'keyn', 'c-p' ],
         \}
 <
+                                                 *autocomplete-ins-completion*
     List of available |ins-completion| sources and their names/mappings:
 
     `Whole lines`                                       'line'    <c-x><c-l>
@@ -320,8 +321,8 @@ Example:
 >
     augroup CompletionTriggers
         autocmd!
-        autocmd BufEnter * let b:autocomplete_extra_triggers = ['.']
-        autocmd BufEnter *.c,*.cpp let b:autocomplete_extra_triggers = ['.', '::']
+        autocmd BufEnter * let b:completion_triggers.lsp = ['.']
+        autocmd BufEnter *.c,*.cpp let b:completion_triggers.lsp = ['.', '::']
     augroup end
 <
 
@@ -332,20 +333,21 @@ Example:
     It is preferred to the global value if it has been defined.
 
 
-- - - - - - - - - - - - - - - - - - - - - - -  *b:autocomplete_extra_triggers*
+- - - - - - - - - - - - - - - - - - - - - - - - - - -  *b:completion_triggers*
 
-    By setting this variable, you can add patterns that will trigger
-    a completion. The variable can hold a list of patterns, or a dictionary
-    with completion methods as keys, and patterns as values.
+    By setting this variable, you can define sequences of characters that will
+    trigger a completion. The variable must hold a dictionary with completion
+    methods as keys, and characters as values. |autocomplete-ins-completion|
+    methods are also accepted.
 
-    Example with list:
+    Example:
 >
-    let b:autocomplete_extra_triggers = ['.', '::']
+    let b:completion_triggers = {'lsp': ['.', '::'], 'omni': ['.'], 'file': ['/']}
 <
-    Example with dictionary:
->
-    let b:autocomplete_extra_triggers = {'lsp': ['.', '::'], 'default': ['.']}
-<
+    Note: LSP clients can provide their own triggers. By setting this variable
+    (that is, its 'lsp' value) you will use exclusively your own triggers.
+    This can also improve performance. If you want to know what triggers LSP
+    provides, run `:LspTriggerCharacters`.
 
 
 ==============================================================================

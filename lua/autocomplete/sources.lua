@@ -1,5 +1,4 @@
 local vim = vim
-local util = require 'autocomplete.util'
 local lsp = require 'autocomplete.sources.lsp'
 local snippet = require 'autocomplete.sources.snippet'
 local path = require 'autocomplete.sources.path'
@@ -87,6 +86,16 @@ end
 -- return a list of triggers for the requested completion method
 function M.getTriggers(source)
   local triggers = {}
+  -- return buffer-local triggers if they have been defined
+  local buflocal = vim.b.completion_triggers
+  if buflocal then
+    for _, v in ipairs(source.methods) do
+      for k in pairs(buflocal) do
+        if v == k then table.insert(triggers, unpack(buflocal[k])) end
+      end
+    end
+    return triggers
+  end
   for _, m in ipairs(source.methods) do
     -- for ins-completion methods, trigger is regex-based
     -- we just make exceptions for file/omni/tags completion
@@ -100,25 +109,6 @@ function M.getTriggers(source)
     if type(trg) == 'function' then trg = trg() or {} end
     for _,val in ipairs(trg) do
       table.insert(triggers, val)
-    end
-  end
-  -- also add buffer-local extra triggers if they have been defined
-  local buflocal = vim.b.autocomplete_extra_triggers
-  if buflocal then
-    if util.is_list(buflocal) then
-      for _,val in ipairs(buflocal) do table.insert(triggers, val) end
-    else
-      for k,v in pairs(buflocal) do
-        if k == 'default' then
-          for _,val in ipairs(v) do table.insert(triggers, val) end
-        else
-          for kb,mb in pairs(buflocal) do
-            if M.ctrlx[kb] or M.builtin[kb] then
-              for _,val in ipairs(mb) do table.insert(triggers, val) end
-            end
-          end
-        end
-      end
     end
   end
   return triggers

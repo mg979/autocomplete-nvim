@@ -25,7 +25,9 @@ local insplug = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, fa
 function completion.init()
   Var.init()
   -- LSP triggers shouldn't change once loaded, am I wrong?
-  if vim.lsp.buf_get_clients() ~= nil and vim.b.lsp_triggers == nil then
+  if not vim.b.completion_triggers.lsp and
+     vim.lsp.buf_get_clients() ~= nil and
+     vim.b.lsp_triggers == nil then
     util.setBufVar('lsp_triggers', sources.lspTriggerCharacters())
   end
 end
@@ -106,6 +108,30 @@ local function getPositionalParams()
   return line_to_cursor, from_column, prefix
 end
 
+------------------------------------------------------------------------
+-- getArrays returns 2 values:
+--
+-- callback_array:  callbacks become true when completion items have been generated
+-- items_array:     array of generateItems functions for each completion source
+------------------------------------------------------------------------
+local function getArrays(methods, prefix, from_column)
+  local callback_array = {}
+  local items_array = {}
+  for _, s in ipairs(methods) do
+    local src = sources.builtin[s]
+    -- we include the source in the popup only if we typed enough characters
+    -- if #prefix == 0, it means a non-keyword char has triggered the completion
+    -- (example: '.' for member completion), in this case we include it anyway
+    if Var.forceCompletion or #prefix == 0 or src.triggerLength <= #prefix then
+      table.insert(callback_array, src.callback or true)
+      -- a bit messy: we can have only src.items or we can have both
+      -- src.generateItems and src.items (both must be functions)
+      if src.generateItems then src.generateItems(prefix, from_column) end
+      if src.items then table.insert(items_array, src.items) end
+    end
+  end
+  return items_array, callback_array
+end
 
 
 
@@ -267,14 +293,7 @@ end
 
 -- custom non-asynch completions
 function completion.blocking(methods, prefix, from_column)
-  local items_array = {}
-  for _, m in ipairs(methods) do
-    local source = sources.builtin[m]
-    if Var.forceCompletion or source.triggerLength <= #prefix then
-      if source.generateItems then source.generateItems(prefix, from_column) end
-      if source.items then table.insert(items_array, source.items) end
-    end
-  end
+  local items_array = getArrays(methods, prefix, from_column)
   if not next(items_array) then return completion.nextSource() end
   local items = getCompletionItems(items_array, prefix)
   if vim.g.autocomplete.sorting ~= "none" then
@@ -295,22 +314,7 @@ end
 function asynch.completion(methods, prefix, from_column)
   -- we inform that there's a completion attempt running
   Var.canTryCompletion = false
-  -- callback_array: if asynch, callback for method will be initially false, it
-  -- will become true when completion items have been generated
-  local callback_array = {}
-  -- items_array: array of generateItems functions for each completion source
-  local items_array = {}
-  for _, s in ipairs(methods) do
-    local src = sources.builtin[s]
-    -- we include the source in the popup only if we typed enough characters
-    if Var.forceCompletion or src.triggerLength <= #prefix then
-      table.insert(callback_array, src.callback or true)
-      -- a bit messy: we can have only src.items or we can have both
-      -- src.generateItems and src.items (both must be functions)
-      if src.generateItems then src.generateItems(prefix, from_column) end
-      if src.items then table.insert(items_array, src.items) end
-    end
-  end
+  local items_array, callback_array = getArrays(methods, prefix, from_column)
   if not next(items_array) then return completion.nextSource() end
 
   asynch.timer = vim.loop.new_timer()
