@@ -77,28 +77,34 @@ end
 --                          chain validation                          --
 ------------------------------------------------------------------------
 
--- check that all elements are valid sources
-function M.validateChainItem(item)
-  if util.is_list(item) then
-    -- if the item is a list, its elements must be built-in sources
-    for _, v in ipairs(item) do
-      if not sources.builtin[v] then return nil end
-    end
-  elseif not sources.builtin[item] and
-         not sources.ctrlx[item] then
-    return nil
-  end
+local function fixItem(item)
   -- fix mandatory missing members in valid sources
   if sources.builtin[item] then
     -- an item must have some way of being triggered
     if not sources.builtin[item].triggers and
-       not sources.builtin[item].regexes then
+      not sources.builtin[item].regexes then
       sources.builtin[item].regexes = defaultRegexes
     end
     -- make sure the method has a defined triggerLength
     if not sources.builtin[item].triggerLength then
       sources.builtin[item].triggerLength = defaultTriggerLength
     end
+  end
+end
+
+-- check that all elements are valid sources
+function M.validateChainItem(item)
+  if util.is_list(item) then
+    -- if the item is a list, its elements must be built-in sources
+    for _, v in ipairs(item) do
+      if not sources.builtin[v] then return nil
+      else fixItem(v) end
+    end
+  elseif not sources.builtin[item] and
+         not sources.ctrlx[item] then
+    return nil
+  else
+    fixItem(item)
   end
   return item
 end

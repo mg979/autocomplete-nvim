@@ -161,7 +161,7 @@ end
 
 -- Test if completion can be triggered, if this will result in a completion
 -- popup will obviously depend on whether there are candidates for the prefix.
--- Here we'll consider:
+-- Here we'll consider (in order):
 --
 -- canTryCompletion:  flag for asynch completion in progress, nothing can be
 --                    done while this is false

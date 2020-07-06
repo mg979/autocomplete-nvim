@@ -7,7 +7,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " default minimum number of characters before cursor for automatic completion
-let s:trigger_lengths = {'lsp': 2, 'snippet': 1, 'path': 1, 'default': 2}
+let s:trigger_lengths = {'lsp': 2, 'snippet': 1, 'path': 2, 'default': 2}
 
 let g:autocomplete = get(g:, 'autocomplete', {})
 
@@ -34,7 +34,7 @@ call extend(g:autocomplete, s:autocomplete, 'keep')
 
 let g:autocomplete.chains = get(g:autocomplete, 'chains', {
       \   'default': {
-      \      'comment': [ 'path', 'keyn' ],
+      \      'comment': [ 'keyn', 'file' ],
       \      'default': [ ['snippet', 'lsp'], 'keyn', 'file' ]
       \}})
 
