@@ -222,6 +222,9 @@ function completion.try()
   local src = sources.getCurrent()
   if not src then return end
 
+  -- stop if no new character has been inserted, or reset the flag
+  if not Var.insertChar then return else Var.insertChar = false end
+
   checkHover() -- open hover and signature popup if appropriate
 
   local line_to_cursor, from_column, prefix = getPositionalParams()
@@ -236,9 +239,6 @@ function completion.try()
                          #prefix < src.triggerLength
 
   if word_too_short then return completion.reset() end
-
-  -- stop if no new character has been inserted, or reset the flag
-  if not Var.insertChar then return else Var.insertChar = false end
 
   local can_try = Var.forceCompletion or
                   can_trigger or
