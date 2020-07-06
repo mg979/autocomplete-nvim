@@ -59,8 +59,7 @@ fun! autocomplete#confirm() abort
 endfun
 
 fun! autocomplete#attach() abort
-  if exists('b:autocomplete') | return | endif
-  let b:autocomplete = {}
+  if exists('b:completion_auto_popup') | return | endif
   autocmd InsertEnter   <buffer> lua require'autocomplete'.on_InsertEnter()
   autocmd InsertLeave   <buffer> lua require'autocomplete'.on_InsertLeave()
   autocmd InsertCharPre <buffer> lua require'autocomplete'.on_InsertCharPre()
