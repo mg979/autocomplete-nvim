@@ -30,8 +30,7 @@ M.builtin = {
     callback = lsp.getCallback,
     items = lsp.getLspCompletions,
     asynch = true,
-    triggers = M.lspTriggers,
-    regexes = {is_keyword},
+    triggers = function() return vim.b.lsp_triggers or nil end,
     triggerLength = vim.g.autocomplete.trigger_length.lsp
   },
   ['snippet'] = {
@@ -74,10 +73,6 @@ function M.lspTriggerCharacters()
     end
   end
   return nil
-end
-
-function M.lspTriggers()
-  return vim.b.lsp_triggers or nil
 end
 
 function M.getCurrent()
