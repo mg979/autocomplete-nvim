@@ -39,6 +39,12 @@ function completion.retry()
   completion.try()
 end
 
+function completion.reset()
+  Var.changedTick = 0
+  Var.chainIndex = 1
+  asynch.stop()
+  popup.dismiss()
+end
 
 
 
@@ -203,7 +209,7 @@ function completion.try()
                          not can_trigger and
                          #prefix < src.triggerLength
 
-  if word_too_short then return popup.dismiss() end
+  if word_too_short then return completion.reset() end
 
   -- stop if no new character has been inserted, or reset the flag
   if not Var.insertChar then return else Var.insertChar = false end
