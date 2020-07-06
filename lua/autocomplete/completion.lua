@@ -168,10 +168,12 @@ end
 --                    are other conditions that can change the tick, other than
 --                    insertChar
 -- check source:      check there is a valid chain/source
+-- check triggers:    these are characters of any type that alone are enough to
+--                    warrant a completion attempt, they are source-specific
 -- prefix length:     auto popup should be only triggered after a certain number
 --                    of characters has been entered
 -- forceCompletion:   by manual completion or manual source change
--- triggers/regex:    final test to see if the completion should be tried
+-- check regex:       also source-specific, for sources without triggers
 --
 -- If no completion can/should be tried for the current source, try the next
 -- one, unless already at the last chain.
@@ -192,21 +194,25 @@ function completion.try()
 
   local line_to_cursor, from_column, prefix = getPositionalParams()
 
+  -- check the triggers now, because also non-keyword characters could be valid
+  -- triggers, but prefix only matches keyword characters
+  local can_trigger = util.checkTriggers(line_to_cursor, sources.getTriggers(src))
+
   -- don't proceed when backspacing in insert mode, or when typing a new word
-  local word_too_short = not Var.forceCompletion and #prefix < src.triggerLength
+  local word_too_short = not Var.forceCompletion and
+                         not can_trigger and
+                         #prefix < src.triggerLength
 
   if word_too_short then return popup.dismiss() end
 
-  -- stop if no new character has been inserted
-  if not Var.insertChar then return end
-  -- can reset the flag now
-  Var.insertChar = false
+  -- stop if no new character has been inserted, or reset the flag
+  if not Var.insertChar then return else Var.insertChar = false end
 
   local can_try = Var.forceCompletion or
-                  util.checkTriggers(line_to_cursor, sources.getTriggers(src)) or
+                  can_trigger or
                   util.checkRegexes(line_to_cursor, sources.getRegexes(src))
 
-  -- print(vim.inspect(src.methods), prefix, can_try)
+  -- print(vim.inspect(src.methods), prefix, can_trigger, can_try)
 
   if can_try then
     completion.perform(src, prefix, from_column)
