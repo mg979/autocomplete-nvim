@@ -16,14 +16,12 @@ manager = {
   forceCompletion = false,     -- flag for forced manual completion/source change
   activeChain = nil,           -- currently used completion chain
   chainIndex = 1,              -- current index in loaded chain
-  oldPrefixLen = 0,            -- keeps track of the lenght of the typed word, for triggers/backspace
 }
 
 function manager.init()
   -- this is run on InsertEnter
   manager.activeChain         = nil
   manager.insertLeave         = false
-  manager.oldPrefixLen        = 0
   manager.canTryCompletion    = true
   manager.insertChar          = false
   manager.textHover           = false
@@ -47,8 +45,7 @@ function manager.debug()
   'changedTick = '         .. vim.inspect(manager.changedTick)         .. '\n' ..
   'confirmedCompletion = ' .. vim.inspect(manager.confirmedCompletion) .. '\n' ..
   'forceCompletion = '     .. vim.inspect(manager.forceCompletion)     .. '\n' ..
-  'chainIndex = '          .. vim.inspect(manager.chainIndex)          .. '\n' ..
-  'oldPrefixLen = '        .. vim.inspect(manager.oldPrefixLen)
+  'chainIndex = '          .. vim.inspect(manager.chainIndex)
   )
 end
 

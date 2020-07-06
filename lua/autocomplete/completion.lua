@@ -34,7 +34,6 @@ end
 function completion.retry()
   Var.changedTick = 0
   Var.insertChar = true
-  -- Var.oldPrefixLen = 0
   asynch.stop()
   popup.dismiss()
   completion.try()
@@ -195,7 +194,6 @@ function completion.try()
 
   -- don't proceed when backspacing in insert mode, or when typing a new word
   local word_too_short = not Var.forceCompletion and #prefix < src.triggerLength
-  Var.oldPrefixLen = #prefix
 
   if word_too_short then return popup.dismiss() end
 
