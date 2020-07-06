@@ -7,7 +7,7 @@ local Var = require 'autocomplete.manager'
 
 local M = {}
 local is_keyword = '\\<\\k\\+'
-local is_slash = vim.fn.has('win32') == 1 and {':\\'} or {'/'}
+local is_slash = vim.fn.has('win32') == 1 and {'\\'} or {'/'}
 
 
 ----------------------------------------------------------------------------------------
@@ -16,12 +16,12 @@ local is_slash = vim.fn.has('win32') == 1 and {':\\'} or {'/'}
 --| Possible properties for sources are:                                              -|
 --|                                                                                   -|
 --| generateItems: function to generate a list of completion items                    -|
---| callback:      becomes true if item generation has been successful                -|
+--| callback:      becomes true when item generation has been completed               -|
 --| items:         function to collect the completion items once generated            -|
 --| asynch:        boolean that flags asynch sources                                  -|
 --| triggerLength: minimum length of the word before completion can trigger           -|
---| triggers:      [func returning] list of chars that can trigger the completion     -|
---| regexes:       list of regexes that can trigger the completion                    -|
+--| triggers:      [func->] list of chars that can trigger the completion             -|
+--| regexes:       [func->] list of regexes that can trigger the completion           -|
 ----------------------------------------------------------------------------------------
 
 M.builtin = {
@@ -44,7 +44,7 @@ M.builtin = {
     asynch = true,
     triggerLength = vim.g.autocomplete.trigger_length.path,
     triggers = is_slash,
-    regexes = vim.fn.has('win32') == 1 and {'\\\\\\f\\+'} or {'/\\f\\+'},
+    regexes = {'\\f\\+'},
   },
 }
 
@@ -97,7 +97,7 @@ function M.getTriggers(source)
     end
     -- source.triggers can be either a function or a list
     local trg = M.builtin[m].triggers or {}
-    if type(trg) == 'function' then trg = trg() end
+    if type(trg) == 'function' then trg = trg() or {} end
     for _,val in ipairs(trg) do
       table.insert(triggers, val)
     end
@@ -127,10 +127,10 @@ end
 function M.getRegexes(source)
   local regexes = {}
   for _, m in ipairs(source.methods) do
-    -- method.regexes can be either a function or a list
+    -- method.regexes can be either boolean, a function or a list
     if M.ctrlx[m] then return {is_keyword} end
     local rxs = M.builtin[m].regexes or {}
-    if type(rxs) == 'function' then rxs = rxs() end
+    if type(rxs) == 'function' then rxs = rxs() or {} end
     for _,val in ipairs(rxs) do
       table.insert(regexes, val)
     end

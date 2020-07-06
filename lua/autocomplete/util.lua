@@ -129,9 +129,10 @@ function M.checkTriggers(line_to_cursor, triggers)
   return false
 end
 
--- Check regex match
+-- Check regexes (either boolean or a list)
 function M.checkRegexes(line_to_cursor, regexes)
-  if regexes == nil then return false end
+  if not regexes then return false
+  elseif regexes == true then return true end
   for _, rx in ipairs(regexes) do
     if vim.fn.match(line_to_cursor, rx .. '$') >= 0 then return true end
   end
