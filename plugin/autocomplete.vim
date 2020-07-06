@@ -6,9 +6,6 @@ let g:loaded_autocomplete = 1
 let s:save_cpo = &cpo
 set cpo&vim
 
-" default minimum number of characters before cursor for automatic completion
-let s:trigger_lengths = {'lsp': 2, 'snippet': 1, 'path': 2, 'default': 2}
-
 let g:autocomplete = get(g:, 'autocomplete', {})
 
 let s:autocomplete = {
@@ -21,7 +18,7 @@ let s:autocomplete = {
       \ 'docked_hover':           get(g:autocomplete, 'docked_hover', 0),
       \ 'minimum_size':           get(g:autocomplete, 'minimum_size', 5),
       \ 'maximum_size':           get(g:autocomplete, 'maximum_size', 20),
-      \ 'trigger_length':         get(g:autocomplete, 'trigger_length', s:trigger_lengths),
+      \ 'trigger_length':         get(g:autocomplete, 'trigger_length', 2),
       \ 'timer_cycle':            get(g:autocomplete, 'timer_cycle', 80),
       \ 'sorting':                get(g:autocomplete, 'sorting', 'alphabet'),
       \ 'fuzzy_match':            get(g:autocomplete, 'fuzzy_match', 0),

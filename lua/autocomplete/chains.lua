@@ -25,7 +25,7 @@ local M = {}
 ------------------------------------------------------------------------
 
 -- trigger length to be used for method if it doesn't define it in its table
-local defaultTriggerLength = vim.g.autocomplete.trigger_length.default or 2
+local defaultTriggerLength = vim.g.autocomplete.trigger_length
 
 -- regex triggers to be used for method if it doesn't define any in its table
 local defaultRegexes = {'\\<\\k\\+'}

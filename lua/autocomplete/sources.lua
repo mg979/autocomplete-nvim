@@ -30,19 +30,19 @@ M.builtin = {
     callback = lsp.getCallback,
     items = lsp.getLspCompletions,
     asynch = true,
-    triggers = function() return vim.b.lsp_triggers or nil end,
-    triggerLength = vim.g.autocomplete.trigger_length.lsp
+    triggers = function() return vim.b.completion_triggers.lsp or vim.b.lsp_triggers end,
+    triggerLength = vim.g.autocomplete.trigger_length,
   },
   ['snippet'] = {
     items = snippet.getSnippets,
-    triggerLength = vim.g.autocomplete.trigger_length.snippet
+    triggerLength = 1,
   },
   ['path'] = {
     generateItems = path.triggerFunction,
     callback = path.getCallback,
     items = path.getPaths,
     asynch = true,
-    triggerLength = vim.g.autocomplete.trigger_length.path,
+    triggerLength = vim.g.autocomplete.trigger_length,
     triggers = is_slash,
     regexes = {'\\f\\+'},
   },
