@@ -124,11 +124,15 @@ local function signature_help_to_preview_contents(input)
   return contents
 end
 
-function M.autoOpenSignatureHelp()
+function M.autoOpenSignatureHelp(line_to_cursor)
   local bufnr = api.nvim_get_current_buf()
-  local pos = api.nvim_win_get_cursor(0)
-  local line = api.nvim_get_current_line()
-  local line_to_cursor = line:sub(1, pos[2])
+  -- line_to_cursor could be passed by completion.try()
+  -- but this function could be called from other contexts
+  if not line_to_cursor then
+    local pos = api.nvim_win_get_cursor(0)
+    local line = api.nvim_get_current_line()
+    line_to_cursor = line:sub(1, pos[2])
+  end
   if vim.lsp.buf_get_clients() == nil then return end
 
   local triggered

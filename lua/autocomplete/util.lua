@@ -124,7 +124,9 @@ function M.checkTriggers(line_to_cursor, triggers)
   if triggers == nil then return false end
   for _, ch in ipairs(triggers) do
     local current_char = string.sub(line_to_cursor, #line_to_cursor-#ch+1, #line_to_cursor)
-    if current_char == ch then return true end
+    if current_char == ch then
+      -- print('trigger: ' .. current_char) -- DEBUG
+      return true end
   end
   return false
 end

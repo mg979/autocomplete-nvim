@@ -244,7 +244,7 @@ function completion.try()
                   can_trigger or
                   util.checkRegexes(line_to_cursor, sources.getRegexes(src))
 
-  -- print(vim.inspect(src.methods), prefix, can_trigger, can_try)
+  -- print(vim.inspect(src.methods), prefix, can_trigger, can_try) -- DEBUG
 
   if can_try then
     completion.perform(src, prefix, from_column)
