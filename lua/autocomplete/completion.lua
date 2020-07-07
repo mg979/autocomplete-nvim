@@ -54,13 +54,17 @@ end
 --                            local helpers                           --
 ------------------------------------------------------------------------
 
--- check if hover or signature popup should open
-local function checkHover()
+-- check if hover popup should open
+local function openHover()
   if vim.g.autocomplete.auto_hover == 1 then
     hover.autoOpenHoverInPopup()
   end
+end
+
+-- check if signature popup should open
+local function checkSignature(line_to_cursor)
   if vim.g.autocomplete.auto_signature == 1 then
-    signature.autoOpenSignatureHelp()
+    signature.autoOpenSignatureHelp(line_to_cursor)
   end
 end
 
@@ -200,34 +204,40 @@ end
 --                    are other conditions that can change the tick, other than
 --                    insertChar
 -- check source:      check there is a valid chain/source
+-- check hover:       hover should appear for TextChangedP, but not after insertChar
+-- check insertChar:  stop if no character is inserted
+-- check signature:   differently from hover, signature needs an inserted character
 -- check triggers:    these are characters of any type that alone are enough to
 --                    warrant a completion attempt, they are source-specific
 -- prefix length:     auto popup should be only triggered after a certain number
 --                    of characters has been entered
--- forceCompletion:   by manual completion or manual source change
+-- forceCompletion:   by manual completion or manual source change, it bypasses
+--                    prefix lenght check
 -- check regex:       also source-specific, for sources without triggers
 --
 -- If no completion can/should be tried for the current source, try the next
 -- one, unless already at the last chain.
 ------------------------------------------------------------------------
 function completion.try()
-  -- do nothing if no changes to buffer
-  if not changedTick() then return end
-
   -- asynch completion timer in progress
   if not Var.canTryCompletion then return end
+
+  -- do nothing if no changes to buffer
+  if not changedTick() then return end
 
   -- verify that there's some source
   Var.activeChain = chains.getChain()
   local src = sources.getCurrent()
   if not src then return end
 
+  openHover() -- open hover popup if appropriate
+
   -- stop if no new character has been inserted, or reset the flag
   if not Var.insertChar then return else Var.insertChar = false end
 
-  checkHover() -- open hover and signature popup if appropriate
-
   local line_to_cursor, from_column, prefix = getPositionalParams()
+
+  checkSignature(line_to_cursor) -- open signature popup if appropriate
 
   -- check the triggers now, because also non-keyword characters could be valid
   -- triggers, but prefix only matches keyword characters
