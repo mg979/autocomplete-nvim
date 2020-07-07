@@ -41,6 +41,32 @@ M.focusable_float = function(unique_name, fn)
   end
 end
 
+
+---------------------------------------
+--  store/restore original position  --
+---------------------------------------
+local _win, _row, _col -- position in original buffer
+
+-- FIXME: the callback for the hover window is slighly problematic because if
+-- one changes popup selection too fast, there is some sloppiness and text can
+-- be even corrupted. Test: type "vim.api." and start tabbing fast through items
+-- Possible solution: use a timer for the hover window, only show the hover at
+-- the end of the timer, and every change to Var.changedTick would restart the
+-- timer, preventing unnecessary windows for popup items that have already been
+-- changed.
+
+-- restore cursor position in the original buffer
+local function restoreCursor()
+  api.nvim_win_set_cursor(_win, {_row, _col})
+end
+
+-- store cursor position in the original buffer
+local function storeCursor()
+  _win = api.nvim_get_current_win()
+  _row, _col = unpack(api.nvim_win_get_cursor(0))
+end
+
+
 ---------------------------------
 --  floating window for hover  --
 ---------------------------------
@@ -297,6 +323,7 @@ local function callback_function(_, method, result)
   else
     M.default_callback(_, method, result, _)
   end
+  restoreCursor()
 end
 
 M.autoOpenHoverInPopup = function()
@@ -311,6 +338,7 @@ M.autoOpenHoverInPopup = function()
 
   local bufnr = api.nvim_get_current_buf()
   if vim.fn.pumvisible() == 1 then
+    storeCursor()
     -- Auto open hover
     local items = api.nvim_call_function('complete_info', {{"eval", "selected", "items", "user_data"}})
     if items['selected'] ~= Var.selected then
