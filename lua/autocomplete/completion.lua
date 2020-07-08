@@ -235,7 +235,8 @@ function completion.try()
 
   -- check the triggers now, because also non-keyword characters could be valid
   -- triggers, but prefix only matches keyword characters
-  local can_trigger = util.checkTriggers(line_to_cursor, sources.getTriggers(src))
+  local can_trigger = Var.forceCompletion or
+                      util.checkTriggers(line_to_cursor, sources.getTriggers(src))
 
   if not can_trigger then
     checkSignature(line_to_cursor) -- open signature popup if appropriate
@@ -245,14 +246,12 @@ function completion.try()
   local prefix, from_column = getPrefix(src, line_to_cursor)
 
   -- don't proceed when typing a new word
-  local word_too_short = not Var.forceCompletion and
-                         not can_trigger and
+  local word_too_short = not can_trigger and
                          #prefix < src.triggerLength
 
   if word_too_short then return completion.reset() end
 
-  local can_try = Var.forceCompletion or
-                  can_trigger or
+  local can_try = can_trigger or
                   util.checkRegexes(line_to_cursor, sources.getRegexes(src))
 
   -- print(vim.inspect(src.methods), prefix, can_trigger, can_try) -- DEBUG
