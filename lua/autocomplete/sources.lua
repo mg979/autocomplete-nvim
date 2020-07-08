@@ -6,7 +6,6 @@ local util = require 'autocomplete.util'
 local Var = require 'autocomplete.manager'
 
 local M = {}
-local is_keyword = '\\<\\k\\+'
 local is_path = vim.fn.has('win32') == 1 and '\\\\\\?f*$' or '/\\?\\f*$'
 
 
@@ -21,7 +20,7 @@ local is_path = vim.fn.has('win32') == 1 and '\\\\\\?f*$' or '/\\?\\f*$'
 --| asynch:        boolean that flags asynch sources                                  -|
 --| triggerLength: minimum length of the word before completion can trigger           -|
 --| triggers:      [func->] list of chars that can trigger the completion             -|
---| regexes:       [func->] list of regexes that can trigger the completion           -|
+--| regex:         bool or regex pattern that can trigger the completion              -|
 ----------------------------------------------------------------------------------------
 
 M.builtin = {
@@ -44,7 +43,6 @@ M.builtin = {
     asynch = true,
     triggerLength = vim.g.autocomplete.trigger_length,
     pattern = is_path,
-    regexes = {'\\f\\+'},
   },
 }
 
@@ -114,18 +112,21 @@ function M.getTriggers(source)
   return triggers
 end
 
-function M.getRegexes(source)
-  local regexes = {}
+-- Sources can define a regex pattern that must match in the line. If no pattern
+-- is defined (as it usually happens) then we assume completion can be tried.
+-- If it is defined as 'false', this check always fails: then the source needs
+-- a valid trigger for completion to be attempted.
+--
+function M.checkRegex(source, line_to_cursor)
   for _, m in ipairs(source.methods) do
-    -- method.regexes can be either boolean, a function or a list
-    if M.ctrlx[m] then return {is_keyword} end
-    local rxs = M.builtin[m].regexes or {}
-    if type(rxs) == 'function' then rxs = rxs() or {} end
-    for _,val in ipairs(rxs) do
-      table.insert(regexes, val)
-    end
+    -- ins-completion methods are always ok
+    if M.ctrlx[m] then return true end
+    -- if method.regex is absent, we assume it can match
+    if M.builtin[m].regex == nil or M.builtin[m].regex == true then return true
+    elseif M.builtin[m].regex == false then return false end
+    if vim.fn.match(line_to_cursor, M.builtin[m].regex .. '$') >= 0 then return true end
   end
-  return regexes
+  return false
 end
 
 -- A source can define its own pattern to match the currently typed word.

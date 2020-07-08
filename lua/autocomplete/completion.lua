@@ -252,7 +252,7 @@ function completion.try()
   if word_too_short then return completion.reset() end
 
   local can_try = can_trigger or
-                  util.checkRegexes(line_to_cursor, sources.getRegexes(src))
+                  sources.checkRegex(src, line_to_cursor)
 
   -- print(vim.inspect(src.methods), prefix, can_trigger, can_try) -- DEBUG
 

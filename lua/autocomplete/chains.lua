@@ -29,9 +29,6 @@ local M = {}
 -- trigger length to be used for method if it doesn't define it in its table
 local defaultTriggerLength = vim.g.autocomplete.trigger_length
 
--- regex triggers to be used for method if it doesn't define any in its table
-local defaultRegexes = {'\\<\\k\\+'}
-
 -- default chain to be used if no valid chain can be fetched from definitions
 local defaultScopedChain = {
     comment = { 'path', 'keyn' },
@@ -82,11 +79,6 @@ end
 local function fixItem(item)
   -- fix mandatory missing members in valid sources
   if sources.builtin[item] then
-    -- an item must have some way of being triggered
-    if not sources.builtin[item].triggers and
-      not sources.builtin[item].regexes then
-      sources.builtin[item].regexes = defaultRegexes
-    end
     -- make sure the method has a defined triggerLength
     if not sources.builtin[item].triggerLength then
       sources.builtin[item].triggerLength = defaultTriggerLength
