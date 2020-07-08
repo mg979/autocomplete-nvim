@@ -91,20 +91,20 @@ local function checkCallback(callback_array)
   return true
 end
 
-------------------------------------------------------------------------
--- getPositionalParams returns 3 values:
---
 -- line_to_cursor:  the string with the part of the line up to the cursor
--- from_column:     the column at which the current prefix starts
--- prefix:          the part of the word for which we could find a completion
-------------------------------------------------------------------------
-local function getPositionalParams()
+local function getLineToCursor()
   local line           = vim.api.nvim_get_current_line()
   local pos            = vim.api.nvim_win_get_cursor(0)
   local line_to_cursor = line:sub(1, pos[2])
-  local from_column    = vim.fn.match(line_to_cursor, '\\k*$')
+  return line_to_cursor
+end
+
+-- from_column:     the column at which the current prefix starts
+-- prefix:          the partial string for which we could find a completion
+local function getPrefix(src, line_to_cursor)
+  local from_column    = vim.fn.match(line_to_cursor, src.pattern or '\\k*$')
   local prefix         = line_to_cursor:sub(from_column+1)
-  return line_to_cursor, from_column, prefix
+  return prefix, from_column
 end
 
 ------------------------------------------------------------------------
@@ -230,15 +230,21 @@ function completion.try()
   -- stop if no new character has been inserted, or reset the flag
   if not Var.insertChar then return else Var.insertChar = false end
 
-  local line_to_cursor, from_column, prefix = getPositionalParams()
-
-  checkSignature(line_to_cursor) -- open signature popup if appropriate
+  -- get content of the line up to current position
+  local line_to_cursor = getLineToCursor()
 
   -- check the triggers now, because also non-keyword characters could be valid
   -- triggers, but prefix only matches keyword characters
   local can_trigger = util.checkTriggers(line_to_cursor, sources.getTriggers(src))
 
-  -- don't proceed when backspacing in insert mode, or when typing a new word
+  if not can_trigger then
+    checkSignature(line_to_cursor) -- open signature popup if appropriate
+  end
+
+  -- get the partially typed word that could be completed
+  local prefix, from_column = getPrefix(src, line_to_cursor)
+
+  -- don't proceed when typing a new word
   local word_too_short = not Var.forceCompletion and
                          not can_trigger and
                          #prefix < src.triggerLength

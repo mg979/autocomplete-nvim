@@ -17,6 +17,7 @@ local M = {}
 --   methods:       a list of methods (can be a single method in a list)
 --   asynch:        boolean
 --   triggerLength: the minimum trigger length for the methods
+--   pattern:       if not nil, it's the pattern to be used for the prefix
 -- }
 
 
@@ -144,6 +145,7 @@ local function convertChain(chain)
           item.triggerLength = sources.builtin[m].triggerLength or defaultTriggerLength
         end
       end
+      item.pattern = sources.getPatternForPartialWord(m)
       table.insert(validated, item)
     end
   end

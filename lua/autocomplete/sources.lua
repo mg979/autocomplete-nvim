@@ -2,11 +2,12 @@ local vim = vim
 local lsp = require 'autocomplete.sources.lsp'
 local snippet = require 'autocomplete.sources.snippet'
 local path = require 'autocomplete.sources.path'
+local util = require 'autocomplete.util'
 local Var = require 'autocomplete.manager'
 
 local M = {}
 local is_keyword = '\\<\\k\\+'
-local is_slash = vim.fn.has('win32') == 1 and {'\\'} or {'/'}
+local is_path = vim.fn.has('win32') == 1 and '\\\\\\?f*$' or '/\\?\\f*$'
 
 
 ----------------------------------------------------------------------------------------
@@ -42,7 +43,7 @@ M.builtin = {
     items = path.getPaths,
     asynch = true,
     triggerLength = vim.g.autocomplete.trigger_length,
-    triggers = is_slash,
+    pattern = is_path,
     regexes = {'\\f\\+'},
   },
 }
@@ -125,6 +126,23 @@ function M.getRegexes(source)
     end
   end
   return regexes
+end
+
+-- A source can define its own pattern to match the currently typed word.
+-- While most sources will look for keyword characters, some may want to look
+-- for special characters as well. If the source doesn't specify a pattern, the
+-- default '\\k*$' will be used, and this function will return nil.
+--
+-- Example: paths will look for slashes and all legal filename characters
+--
+function M.getPatternForPartialWord(method)
+  if util.is_list(method) then
+    return nil
+  elseif M.ctrlx[method] then
+    return method == 'file' and is_path or nil
+  else
+    return M.builtin[method].pattern
+  end
 end
 
 return M
