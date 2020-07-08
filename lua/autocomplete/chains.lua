@@ -1,5 +1,6 @@
 local util = require 'autocomplete.util'
 local sources = require 'autocomplete.sources'
+local Var = require 'autocomplete.manager'
 local M = {}
 
 -- Chains are obtained from the current value of g:autocomplete.chains, or
@@ -42,8 +43,8 @@ local defaultScopedChain = {
 ------------------------------------------------------------------------
 
 local function getScopedChain(ft_chain)
-  -- a generic chain, not filetype-specific
-  if util.is_list(ft_chain) then return ft_chain end
+  -- a generic, non-scoped chain
+  if #ft_chain > 0 then return ft_chain end
 
   local atPoint = util.syntaxAtCursor():lower()
   -- check if the filetype chain has a match for the current scope
@@ -156,7 +157,8 @@ end
 
 local function bufferChain(filetype)
   -- return previously generated chain
-  if vim.b._autocomplete_chain then return vim.b._autocomplete_chain end
+  local bufnr = vim.fn.bufnr()
+  if Var.chains[bufnr] then return Var.chains[bufnr] end
   -- chain could be local to buffer
   local chain = vim.b.autocomplete_chain or getGlobalChain(filetype)
 
@@ -169,7 +171,7 @@ local function bufferChain(filetype)
     end
   end
   -- store chain in buffer variable
-  util.setBufVar('_autocomplete_chain', validated)
+  Var.chains[bufnr] = validated
   return validated
 end
 

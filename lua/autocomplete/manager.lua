@@ -14,6 +14,7 @@ manager = {
   changedTick = 0,             -- handle changeTick
   confirmedCompletion = false, -- flag for manual confirmation of completion
   forceCompletion = false,     -- flag for forced manual completion/source change
+  chains = {},                 -- here we store validated chains for each buffer
   activeChain = nil,           -- currently used completion chain
   chainIndex = 1,              -- current index in loaded chain
 }
