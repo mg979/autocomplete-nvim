@@ -87,21 +87,20 @@ end
 function M.getTriggers(source)
   local triggers = {}
   -- return buffer-local triggers if they have been defined
-  local buflocal = vim.b.completion_triggers
-  if buflocal then
-    for _, v in ipairs(source.methods) do
-      for k in pairs(buflocal) do
-        if v == k then table.insert(triggers, unpack(buflocal[k])) end
+  local buftriggers = vim.b.completion_triggers
+  if buftriggers then
+    for _, method in ipairs(source.methods) do
+      if buftriggers[method] then
+        table.insert(triggers, unpack(buftriggers[method]))
       end
     end
-    return triggers
+    if next(triggers) then return triggers end
   end
   for _, m in ipairs(source.methods) do
     -- for ins-completion methods, trigger is regex-based
-    -- we just make exceptions for file/omni/tags completion
+    -- we just make exceptions for omni/tags completion
     if M.ctrlx[m] then
-      return m == 'file' and is_slash or
-             m == 'omni' and {'.'} or
+      return m == 'omni' and {'.'} or
              m == 'tags' and {'.'} or {}
     end
     -- source.triggers can be either a function or a list

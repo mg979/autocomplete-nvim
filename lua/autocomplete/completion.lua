@@ -11,11 +11,6 @@ local popup = completion.popup
 local asynch = completion.asynch
 local pumvisible = function() return vim.fn.pumvisible() == 1 end
 
--- <c-g><c-g> sequence is used to dismiss popup and reset completion method
-local cgcg = vim.api.nvim_replace_termcodes("<c-g><c-g>", true, false, true)
-local insplug = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, false, true)
-
-
 
 ------------------------------------------------------------------------
 --                     initialize/retry completion                    --
@@ -283,6 +278,8 @@ end
 --                        blocking completions                        --
 ------------------------------------------------------------------------
 
+local insplug = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, false, true)
+
 -- this handles stock vim ins-completion methods
 function completion.ctrlx(mode)
   -- if popup is visible we don't have to mess with vim completion
@@ -296,7 +293,7 @@ function completion.ctrlx(mode)
   keys = keys .. "<c-r>=pumvisible()?'':autocomplete#nextSource()<cr>"
   -- see https://github.com/neovim/neovim/issues/12297
   keys = vim.api.nvim_replace_termcodes(keys, true, false, true)
-  -- this variable holds the keys that will by <Plug>(InsCompletion)
+  -- this variable holds the keys that will be inserted by <Plug>(InsCompletion)
   vim.g.autocomplete_inscompletion = keys
   vim.api.nvim_feedkeys(insplug, 'm', true)
 end
@@ -364,6 +361,9 @@ end
 ------------------------------------------------------------------------
 --                           chain controls                           --
 ------------------------------------------------------------------------
+
+-- <c-g><c-g> sequence is used to dismiss popup and reset completion method
+local cgcg = vim.api.nvim_replace_termcodes("<c-g><c-g>", true, false, true)
 
 local function stopChanging()
   -- manual completion flag must be reset if no completions are found
