@@ -14,10 +14,12 @@ local M = {}
 -- must be validated. Once done, each member must be converted to a table:
 --
 -- {
---   methods:       a list of methods (can be a single method in a list)
---   asynch:        boolean
---   triggerLength: the minimum trigger length for the methods
---   pattern:       if not nil, it's the pattern to be used for the prefix
+--   methods:         a list of methods (can be a single method in a list)
+--   asynch:          boolean
+--   triggerLength:   the minimum trigger length for the methods
+-- [optional]:
+--   pattern:         if not nil, it's the pattern to be used for the prefix
+--   notIfPumvisible: stop evaluating completions if popup is already visible
 -- }
 
 
@@ -76,8 +78,8 @@ end
 --                          chain validation                          --
 ------------------------------------------------------------------------
 
+-- add missing members in valid sources
 local function fixItem(item)
-  -- fix mandatory missing members in valid sources
   if sources.builtin[item] then
     -- make sure the method has a defined triggerLength
     if not sources.builtin[item].triggerLength then
@@ -115,6 +117,9 @@ local function convertChain(chain)
         item.asynch = false
         item.methods = {m}
         item.triggerLength = defaultTriggerLength
+        if m == 'line' then
+          item.notIfPumvisible = true
+        end
       else
         if util.is_list(m) then
           local tl

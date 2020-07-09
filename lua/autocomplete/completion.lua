@@ -132,6 +132,11 @@ local function getArrays(methods, prefix, from_column)
   return items_array, callback_array
 end
 
+local function stopOnPumvisible(src)
+  return src.notIfPumvisible or
+         vim.fn.complete_info()['mode'] == 'whole_line'
+end
+
 
 
 ------------------------------------------------------------------------
@@ -224,6 +229,10 @@ function completion.try()
   Var.activeChain = chains.getChain()
   local src = sources.getCurrent()
   if not src then return end
+
+  -- some sources (like whole line completion) don't like that we mess with it
+  -- while popup is visible, eg. inserting space shouldn't stop completion
+  if pumvisible() and stopOnPumvisible(src) then return end
 
   openHover() -- open hover popup if appropriate
 
