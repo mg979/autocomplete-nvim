@@ -258,6 +258,14 @@ function completion.try()
   local word_too_short = not can_trigger and
                          #prefix < src.triggerLength
 
+  -- Resetting the chain here prevents chain advancement, so that even if there
+  -- could be sources with a smaller triggerLength, they won't be reached.
+  -- On the other hand, too swift chain advancement would have the bad effect
+  -- that earlier sources would rarely trigger, because if they are skipped here
+  -- and later sources trigger, we'd be stuck there; I assume sources are added
+  -- to the chain in order of importance, so it's better to keep sources with
+  -- greater triggerLength's later in the chain, and reset the chain here if the
+  -- typed word is too short, so that earlier sources trigger more often.
   if word_too_short then return completion.reset() end
 
   local can_try = can_trigger or
