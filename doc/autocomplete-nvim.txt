@@ -9,7 +9,8 @@ CONTENTS                                                   *autocomplete-nvim*
     4. Setup ...................... |autocomplete-setup|
     5. Plugs ...................... |autocomplete-plugs|
     6. Options .................... |autocomplete-options|
-    7. Buffer-local options ....... |autocomplete-buffer-options|
+    7. Chains ..................... |autocomplete-chains|
+    8. Buffer-local options ....... |autocomplete-buffer-options|
 
 
 
@@ -175,13 +176,16 @@ OPTIONS                                                 *autocomplete-options*
     default value: 80
 
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.chains*
+
+==============================================================================
+CHAINS                                                   *autocomplete-chains*
+                                                       *g:autocomplete.chains*
 
     |autocomplete-nvim| has chain completion support inspired by
-    |vim-mucomplete|. In short, you can divide completion sources in groups
-    and have an |ins-completion| method as backup completion. When a source
-    fails to provide completion items, the next one in the chain is attempted,
-    until some completion is obtained, or all sources have been tried.
+    |vim-mucomplete|. In short, you can define a list of completion methods to
+    be tried in sequence. When a source fails to provide completion items, the
+    next one in the chain is attempted, until some completion is obtained, or
+    all sources have been tried.
 
     You can specify different completion list for different filetypes. There
     are the following built-in completion sources:
@@ -203,7 +207,7 @@ OPTIONS                                                 *autocomplete-options*
                                                  *autocomplete-ins-completion*
     List of available |ins-completion| sources and their names/mappings:
 
-    `Whole lines`                                       'line'    <c-x><c-l>
+    `whole lines`                                       'line'    <c-x><c-l>
     `keywords in the current file`                      'keyn'    <c-x><c-n>
     `keywords in the current file (reversed)`           'keyp'    <c-x><c-p>
     `keywords in 'dictionary'`                          'dict'    <c-x><c-k>
@@ -212,16 +216,16 @@ OPTIONS                                                 *autocomplete-options*
     `tags`                                              'tags'    <c-x><c-]>
     `file names`                                        'file'    <c-x><c-f>
     `definitions or macros`                             'defs'    <c-x><c-d>
-    `Vim command-line`                                  'cmd'     <c-x><c-v>
-    `User defined completion`                           'user'    <c-x><c-u>
+    `vim command-line`                                  'cmd'     <c-x><c-v>
+    `user defined completion`                           'user'    <c-x><c-u>
     `omni completion`                                   'omni'    <c-x><c-o>
-    `Spelling suggestions`                              'spel'    <c-x>s
+    `spelling suggestions`                              'spel'    <c-x>s
     `keywords in 'complete'`                            `'c-n'`     <c-n>
     `keywords in 'complete' (reversed)`                 `'c-p'`     <c-p>
 
-    You can easily switch to the next or previous sources by mapping keys in
-    insert mode. For example, using <c-j> to switch to previous sources and
-    <c-k> to switch to next sources:
+    You can switch to the next or previous sources by mapping keys in insert
+    mode. For example, using <c-j> to switch to previous sources and <c-k> to
+    switch to next sources:
 >
     imap <c-j> <Plug>(NextSource)
     imap <c-k> <Plug>(PrevSource)
@@ -253,34 +257,82 @@ OPTIONS                                                 *autocomplete-options*
     There is a 'default' chain that is used when an appropriate chain has not
     been defined by the user. It is actually a scoped chain:
 >
-    'default' : {
-      'comment': [ 'path', 'keyn' ],
-      'default': [ 'snippet', 'lsp', 'path', 'keyn' ]
+    default = {
+      comment = { 'file', 'keyn' },
+      default = { {'snippet', 'lsp'}, 'file', 'keyn' }
     }
 <
     That is, it will only complete words from the current buffers when inside
     comments, and attempt several methods in other scopes.
 
     This 'default' chain is also used when scoped chains for the current
-    filetype have been defined, but they don't match the current scope nor
-    they contain a 'default' chain for unmatched syntax groups.
+    filetype have been defined, but they don't match the current scope, nor
+    they define their own 'default' chain for unmatched syntax groups.
 
-    You can redefine this 'default' chain but you obviously don't need to.
-    If you do, it's better if you define it as a scoped chain, and you only
-    need to set a default for the groups you're interested in. If it fails to
-    match any, the built-in 'default' will still be used as a fallback.
+    It is also used (and this is less obvious) when a filetype-specific chain
+    is defined, but as a list, not as a scoped chain: in this case, the
+    filetype chain will only replace the `default.default` list in the snippet
+    above, while inside comments the 'default' scoped chain will be used.
 
-    This won't happen if you define the 'default' key as a simple list!
+    For example, here you define some simple, non-scoped chains for several
+    filetypes:
 >
-    " don't do this
     let g:autocomplete.chains = {
-        \ 'default' : [ ['lsp', 'snippet'], 'path', 'keyn' ],
+        \ 'lua': [ ['lsp', 'snippet'], 'keyn' ],
+        \ 'vim': [ 'snippet', 'cmd', 'keyn' ]
         \}
+<
+    Internally, they will be actually redefined as:
+>
+    let g:autocomplete.chains = {
+      \ 'lua': {
+      \   'default': [ ['lsp', 'snippet'], 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \ },
+      \ 'vim': {
+      \   'default': [ 'snippet', 'cmd', 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \ },
+      \}
+<
+    Missing scopes will also be integrated:
+>
+    let g:autocomplete.chains = {
+      \ 'lua': {
+      \   'default': [ 'lsp', 'file', 'keyn' ],
+      \   'string': [ 'file', 'keyn', 'c-n' ],
+      \ },
+      \}
+<
+    Becomes:
+    >
+    let g:autocomplete.chains = {
+      \ 'lua': {
+      \   'default': [ 'lsp', 'file', 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \   'string': [ 'file', 'keyn', 'c-n' ],
+      \ },
+      \}
+<
+    You can redefine this 'default' chain but you obviously don't need to.
+    If you do, you should define it as a scoped chain, and you only need to
+    set a default for the groups you're interested in. If it fails to match
+    any, the built-in 'default' will still be used as a fallback.
 
-    " this is better, as built-in default will still work
+    If you define the default chain as a list, it will also be converted to
+    a scoped chain:
+>
     let g:autocomplete.chains = {
-        \ 'default' : { 'string': [ 'keyn' ] }
-        \}
+      \ 'default' : [ 'lsp', 'file', 'keyn' ],
+      \}
+<
+    Will be converted into:
+>
+    let g:autocomplete.chains = {
+      \ 'default': {
+      \   'default': [ 'lsp', 'file', 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \ },
 <
 
 

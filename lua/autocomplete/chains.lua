@@ -18,7 +18,8 @@ local M = {}
 --   asynch:          boolean
 --   insCompletion:   boolean
 --   triggerLength:   the minimum trigger length for the methods
--- [optional]:
+--
+-- [optional]
 --   pattern:         if not nil, it's the pattern to be used for the prefix
 --   notIfPumvisible: stop evaluating completions if popup is already visible
 -- }
@@ -34,10 +35,32 @@ local defaultTriggerLength = vim.g.autocomplete.trigger_length
 
 -- default chain to be used if no valid chain can be fetched from definitions
 local defaultScopedChain = {
-    comment = { 'path', 'keyn' },
-    default = { {'snippet', 'lsp'}, 'path', 'keyn' }
+    comment = { 'file', 'keyn' },
+    default = { {'snippet', 'lsp'}, 'file', 'keyn' }
   }
 
+
+------------------------------------------------------------------------
+--                     default chain verification                     --
+------------------------------------------------------------------------
+
+-- default chain to be used if no valid chain can be fetched from definitions
+local function getDefaultChain()
+  return vim.g._autocomplete_default_chain or {
+        comment = { 'file', 'keyn' },
+        default = { {'snippet', 'lsp'}, 'file', 'keyn' }
+      }
+end
+
+local function verifyDefaultChain()
+  if vim.g._autocomplete_default_chain then
+    return
+  elseif not vim.g.autocomplete.chains.default then
+    vim.g._autocomplete_default_chain = defaultScopedChain
+  else
+    vim.g._autocomplete_default_chain = M.toScoped(vim.g.autocomplete.chains.default, 1)
+  end
+end
 
 ------------------------------------------------------------------------
 --                  local functions to parse chains                   --
@@ -58,19 +81,42 @@ local function getScopedChain(ft_chain)
   if ft_chain.default then return ft_chain.default end
 
   -- nothing matches, process the default chain
-  return getScopedChain(vim.g.autocomplete.default_chain or defaultScopedChain)
+  return getScopedChain(getDefaultChain())
+end
+
+-- get a chain that the result of a merge of the user-defined chain, and the
+-- default chain, converting the user chain to a scoped chain if necessary
+function M.toScoped(chain, is_default)
+  local scoped = {}
+  if util.is_list(chain) then
+    -- if user-defined chain is not scoped, turn it into one
+    for k,v in pairs(is_default and defaultScopedChain or getDefaultChain()) do
+      scoped[k] = { unpack(v) }
+    end
+    -- overwrite default scope with the chain provided by the user
+    scoped.default = { unpack(chain) }
+  else
+    -- extend the default scoped chain with the user-defined one
+    for k,v in pairs(is_default and defaultScopedChain or getDefaultChain()) do
+      scoped[k] = { unpack(v) }
+    end
+    for k,v in pairs(chain) do
+      scoped[k] = { unpack(v) }
+    end
+  end
+  return scoped
 end
 
 local function getGlobalChain(filetype)
   local chains = vim.g.autocomplete.chains
   if util.is_list(chains) then
-    return chains
+    return M.toScoped(chains)
   elseif chains[filetype] then
-    return chains[filetype]
+    return M.toScoped(chains[filetype])
   elseif chains.default then
-    return chains.default
+    return M.toScoped(chains.default, true)
   else
-    return vim.g.autocomplete.default_chain or defaultScopedChain
+    return getDefaultChain()
   end
 end
 
@@ -87,17 +133,6 @@ local function fixItem(item)
   end
 end
 
--- extend sources with custom options
-local function extendItem(item)
-  local method = item.methods[1]
-  if vim.g.autocomplete.sources[method] then
-    for k,v in pairs(vim.g.autocomplete.sources[method]) do
-      item[k] = v
-    end
-  end
-  return item
-end
-
 -- check that all elements are valid sources
 function M.validateChainItem(item)
   if util.is_list(item) then
@@ -110,6 +145,23 @@ function M.validateChainItem(item)
     return nil
   else
     fixItem(item)
+  end
+  return item
+end
+
+
+
+------------------------------------------------------------------------
+--                          chain conversion                          --
+------------------------------------------------------------------------
+
+-- extend sources with custom options
+local function extendItem(item)
+  local method = item.methods[1]
+  if vim.g.autocomplete.sources[method] then
+    for k,v in pairs(vim.g.autocomplete.sources[method]) do
+      item[k] = v
+    end
   end
   return item
 end
@@ -159,19 +211,20 @@ local function bufferChain(filetype)
   -- return previously generated chain
   local bufnr = vim.fn.bufnr()
   if Var.chains[bufnr] then return Var.chains[bufnr] end
+
+  -- verify default chain first
+  verifyDefaultChain()
+
   -- chain could be local to buffer
   local chain = vim.b.autocomplete_chain or getGlobalChain(filetype)
 
   local validated = {}
-  if util.is_list(chain) then
-    validated = convertChain(chain)
-  else
-    for scope, scopedChain in pairs(chain) do
-      validated[scope] = convertChain(scopedChain)
-    end
+  for scope, scopedChain in pairs(chain) do
+    validated[scope] = convertChain(scopedChain)
   end
   -- store chain in buffer variable
   Var.chains[bufnr] = validated
+  -- print(vim.inspect(validated)) --DEBUG
   return validated
 end
 
