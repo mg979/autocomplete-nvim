@@ -61,6 +61,7 @@ fun! autocomplete#attach() abort
   autocmd InsertLeave   <buffer> lua require'autocomplete'.on_InsertLeave()
   autocmd InsertCharPre <buffer> lua require'autocomplete'.on_InsertCharPre()
   autocmd CompleteDone  <buffer> lua require'autocomplete'.on_CompleteDone()
+  autocmd BufEnter      <buffer> lua require'autocomplete'.on_BufEnter()
   let b:completion_auto_popup = get(g:autocomplete, 'auto_popup', 1)
   let b:completion_triggers = get(b:, 'completion_triggers', {})
   if get(g:autocomplete, 'confirm_key', '') != ''

@@ -48,6 +48,16 @@ function M.on_CompleteDone()
   end
 end
 
+-- reset several cached settings
+function M.on_BufEnter()
+  local bufnr = vim.fn.bufnr()
+  Var.chains[bufnr] = nil
+  -- these LSP triggers were automatically stored, clear them
+  if vim.b.lsp_triggers then
+    vim.api.nvim_command('unlet b:lsp_triggers')
+  end
+end
+
 
 
 ------------------------------------------------------------------------
