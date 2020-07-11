@@ -44,7 +44,7 @@ inoremap <silent> <Plug>(TabComplete) <C-r>=autocomplete#tab()<CR>
 inoremap <silent> <Plug>(Autocomplete) <C-r>=luaeval("require'autocomplete'.manualCompletion()")<CR>
 inoremap <silent> <Plug>(NextSource) <C-r>=autocomplete#changeSource('next')<CR>
 inoremap <silent> <Plug>(PrevSource) <C-r>=autocomplete#changeSource('prev')<CR>
-inoremap <silent> <Plug>(ConfirmCompletion) <C-r>=autocomplete#confirm()<CR>
+inoremap <expr><silent> <Plug>(ConfirmCompletion) autocomplete#confirm()
 inoremap <silent> <Plug>(InsCompletion) <C-r>=g:autocomplete_inscompletion<CR>
 inoremap <silent> <Plug>(ShowHover) <C-r>=luaeval("require'autocomplete'.showHover()")<CR>
 

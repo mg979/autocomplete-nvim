@@ -154,11 +154,11 @@ function M.hasConfirmedCompletion()
   if vim.g.autocomplete.auto_paren == 1 then
     AddParens(completed_item)
   end
-  if completed_item.kind == 'UltiSnips' then
+  if completed_item.user_data.snippet == 'UltiSnips' then
     api.nvim_call_function('UltiSnips#ExpandSnippet', {})
-  elseif completed_item.kind == 'Neosnippet' then
+  elseif completed_item.user_data.snippet == 'Neosnippet' then
     api.nvim_input("<c-r>".."=neosnippet#expand('"..completed_item.word.."')".."<CR>")
-  elseif completed_item.kind == 'vim-vsnip' then
+  elseif completed_item.user_data.snippet == 'vim-vsnip' then
     api.nvim_call_function('vsnip#expand', {})
   end
 end

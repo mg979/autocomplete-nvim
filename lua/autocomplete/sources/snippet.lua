@@ -22,6 +22,7 @@ local function getUltisnipItems(prefix)
     item.priority = priority
     local user_data = {hover = val}
     item.user_data = user_data
+    item.user_data.snippet = 'UltiSnips'
     match.matching(sources, prefix, item)
   end
   return sources
@@ -44,6 +45,7 @@ local function getNeosnippetItems(prefix)
     item.kind = 'Neosnippet'
     item.priority = priority
     item.user_data = user_data
+    item.user_data.snippet = 'Neosnippet'
     match.matching(sources, prefix, item)
   end
   return sources
@@ -67,6 +69,7 @@ local function getVsnipItems(prefix)
         item.menu = snippet.label
         item.priority = priority
         item.user_data = user_data
+        item.user_data.snippet = 'vim-vsnip'
         match.matching(sources, prefix, item)
       end
     end
