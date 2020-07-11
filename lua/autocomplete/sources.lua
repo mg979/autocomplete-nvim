@@ -23,7 +23,7 @@ local is_path = vim.fn.has('win32') == 1 and '\\\\\\?f*$' or '/\\?\\f*$'
 --| regex:         bool or regex pattern that can trigger the completion              -|
 ----------------------------------------------------------------------------------------
 
-M.builtin = {
+M.registered = {
   ['lsp'] = {
     generateItems = lsp.triggerFunction,
     callback = lsp.getCallback,
@@ -46,7 +46,7 @@ M.builtin = {
   },
 }
 
-M.ctrlx = {
+local ctrlx = {
   ['line'] = "<c-x><c-l>",
   ['cmd'] = "<c-x><c-v>",
   ['defs'] = "<c-x><c-d>",
@@ -63,6 +63,17 @@ M.ctrlx = {
   ['c-p'] = "<c-g><c-g><c-p>",
   ['c-n'] = "<c-g><c-g><c-n>",
 }
+
+for k,v in pairs(ctrlx) do
+  M.registered[k] = {
+    insCompletion   = true,
+    keys            = v,
+    asynch          = false,
+    triggerLength   = vim.g.autocomplete.trigger_length,
+    pattern         = k == 'file' and is_path or nil,
+    notIfPumvisible = k == 'line' and true or nil
+  }
+end
 
 function M.lspTriggerCharacters()
   for _, client in pairs(vim.lsp.buf_get_clients()) do
@@ -83,27 +94,27 @@ end
 ------------------------------------------------------------------------
 
 -- return a list of triggers for the requested completion method
-function M.getTriggers(source)
+function M.getTriggers(src)
   local triggers = {}
   -- return buffer-local triggers if they have been defined
   local buftriggers = vim.b.completion_triggers
   if buftriggers then
-    for _, method in ipairs(source.methods) do
+    for _, method in ipairs(src.methods) do
       if buftriggers[method] then
         table.insert(triggers, unpack(buftriggers[method]))
       end
     end
     if next(triggers) then return triggers end
   end
-  for _, m in ipairs(source.methods) do
+  for _, m in ipairs(src.methods) do
     -- for ins-completion methods, trigger is regex-based
     -- we just make exceptions for omni/tags completion
-    if M.ctrlx[m] then
+    if src.insCompletion then
       return m == 'omni' and {'.'} or
              m == 'tags' and {'.'} or {}
     end
-    -- source.triggers can be either a function or a list
-    local trg = M.builtin[m].triggers or {}
+    -- src.triggers can be either a function or a list
+    local trg = M.registered[m].triggers or {}
     if type(trg) == 'function' then trg = trg() or {} end
     for _,val in ipairs(trg) do
       table.insert(triggers, val)
@@ -117,14 +128,14 @@ end
 -- If it is defined as 'false', this check always fails: then the source needs
 -- a valid trigger for completion to be attempted.
 --
-function M.checkRegex(source, line_to_cursor)
-  for _, m in ipairs(source.methods) do
+function M.checkRegex(src, line_to_cursor)
+  for _, m in ipairs(src.methods) do
     -- ins-completion methods are always ok
-    if M.ctrlx[m] then return true end
+    if src.insCompletion then return true end
     -- if method.regex is absent, we assume it can match
-    if M.builtin[m].regex == nil or M.builtin[m].regex == true then return true
-    elseif M.builtin[m].regex == false then return false end
-    if vim.fn.match(line_to_cursor, M.builtin[m].regex .. '$') >= 0 then return true end
+    if M.registered[m].regex == nil or M.registered[m].regex == true then return true
+    elseif M.registered[m].regex == false then return false end
+    if vim.fn.match(line_to_cursor, M.registered[m].regex .. '$') >= 0 then return true end
   end
   return false
 end
@@ -139,10 +150,8 @@ end
 function M.getPatternForPartialWord(method)
   if util.is_list(method) then
     return nil
-  elseif M.ctrlx[method] then
-    return method == 'file' and is_path or nil
   else
-    return M.builtin[method].pattern
+    return M.registered[method].pattern
   end
 end
 

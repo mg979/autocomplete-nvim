@@ -16,6 +16,7 @@ local M = {}
 -- {
 --   methods:         a list of methods (can be a single method in a list)
 --   asynch:          boolean
+--   insCompletion:   boolean
 --   triggerLength:   the minimum trigger length for the methods
 -- [optional]:
 --   pattern:         if not nil, it's the pattern to be used for the prefix
@@ -80,11 +81,9 @@ end
 
 -- add missing members in valid sources
 local function fixItem(item)
-  if sources.builtin[item] then
-    -- make sure the method has a defined triggerLength
-    if not sources.builtin[item].triggerLength then
-      sources.builtin[item].triggerLength = defaultTriggerLength
-    end
+  -- make sure the method has a defined triggerLength
+  if not sources.registered[item].triggerLength then
+    sources.registered[item].triggerLength = defaultTriggerLength
   end
 end
 
@@ -102,13 +101,12 @@ end
 -- check that all elements are valid sources
 function M.validateChainItem(item)
   if util.is_list(item) then
-    -- if the item is a list, its elements must be built-in sources
+    -- if the item is a list, elements cannot be ins-completion sources
     for _, v in ipairs(item) do
-      if not sources.builtin[v] then return nil
+      if sources.registered[v].insCompletion then return nil
       else fixItem(v) end
     end
-  elseif not sources.builtin[item] and
-         not sources.ctrlx[item] then
+  elseif not sources.registered[item] then
     return nil
   else
     fixItem(item)
@@ -124,34 +122,26 @@ local function convertChain(chain)
     if M.validateChainItem(m) then
       -- turn each chain member into a table
       local item = {}
-      if sources.ctrlx[m] then
+      if util.is_list(m) then
+        local tl
+        item.methods = m
         item.asynch = false
-        item.methods = {m}
-        item.triggerLength = defaultTriggerLength
-        if m == 'line' then
-          item.notIfPumvisible = true
-        end
-      else
-        if util.is_list(m) then
-          local tl
-          item.methods = m
-          item.asynch = false
-          for _, v in ipairs(m) do
-            -- item.asynch will be true if any of the methods is asynch
-            if sources.builtin[v].asynch then
-              item.asynch = true
-            end
-            -- item.triggerLength will be the highest of the methods triggerLength's
-            if not tl or sources.builtin[v].triggerLength < tl then
-              tl = sources.builtin[v].triggerLength
-            end
+        for _, v in ipairs(m) do
+          -- item.asynch will be true if any of the methods is asynch
+          if sources.registered[v].asynch then
+            item.asynch = true
           end
-          item.triggerLength = tl
-        else
-          item.asynch = sources.builtin[m].asynch or false
-          item.methods = {m}
-          item.triggerLength = sources.builtin[m].triggerLength or defaultTriggerLength
+          -- item.triggerLength will be the highest of the methods triggerLength's
+          if not tl or sources.registered[v].triggerLength < tl then
+            tl = sources.registered[v].triggerLength
+          end
         end
+        item.triggerLength = tl
+      else
+        item.asynch = sources.registered[m].asynch
+        item.methods = {m}
+        item.triggerLength = sources.registered[m].triggerLength or defaultTriggerLength
+        item.insCompletion = sources.registered[m].insCompletion
       end
       item.pattern = sources.getPatternForPartialWord(m)
       table.insert(validated, extendItem(item))

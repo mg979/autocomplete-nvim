@@ -117,7 +117,7 @@ local function getArrays(methods, prefix, from_column)
   local callback_array = {}
   local items_array = {}
   for _, s in ipairs(methods) do
-    local src = sources.builtin[s]
+    local src = sources.registered[s]
     -- we include the source in the popup only if we typed enough characters
     -- if #prefix == 0, it means a non-keyword char has triggered the completion
     -- (example: '.' for member completion), in this case we include it anyway
@@ -285,7 +285,8 @@ end
 
 -- run the appropriate completion method
 function completion.perform(src, prefix, from_column)
-  if sources.ctrlx[src.methods[1]] then -- it's and ins-completion source
+  vim.api.nvim_set_var('autocomplete_current_completion', table.concat(src.methods, ','))
+  if src.insCompletion then
     completion.ctrlx(src.methods[1])
   elseif src.asynch then
     asynch.completion(src.methods, prefix, from_column)
@@ -311,7 +312,7 @@ function completion.ctrlx(mode)
   if mode == "user" and vim.bo.completefunc == "" then return end
   if mode == "spel" and not vim.wo.spell then return end
   -- if the keys won't be followed by a popup, we'll change source
-  local keys = sources.ctrlx[mode]
+  local keys = sources.registered[mode].keys
   keys = keys .. "<c-r>=pumvisible()?'':autocomplete#nextSource()<cr>"
   -- see https://github.com/neovim/neovim/issues/12297
   keys = vim.api.nvim_replace_termcodes(keys, true, false, true)

@@ -76,10 +76,10 @@ end
 
 -- provide api for custom sources
 function M.addSource(key, value)
-  if sources.builtin[key] or sources.ctrlx[key] then
+  if sources.registered[key] then
     return
   end
-  sources.builtin[key] = value
+  sources.registered[key] = value
 end
 
 function M.toggleCompletion()
