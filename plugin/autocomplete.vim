@@ -35,6 +35,8 @@ let g:autocomplete.chains = get(g:autocomplete, 'chains', {
       \      'default': [ ['snippet', 'lsp'], 'keyn', 'file' ]
       \}})
 
+let g:autocomplete.sources = get(g:autocomplete, 'sources', {})
+
 command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()
 command! -bar LspTriggerCharacters   lua print(vim.inspect(require'autocomplete.sources'.lspTriggerCharacters()))
 

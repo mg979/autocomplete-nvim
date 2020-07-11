@@ -88,6 +88,17 @@ local function fixItem(item)
   end
 end
 
+-- extend sources with custom options
+local function extendItem(item)
+  local method = item.methods[1]
+  if vim.g.autocomplete.sources[method] then
+    for k,v in pairs(vim.g.autocomplete.sources[method]) do
+      item[k] = v
+    end
+  end
+  return item
+end
+
 -- check that all elements are valid sources
 function M.validateChainItem(item)
   if util.is_list(item) then
@@ -143,7 +154,7 @@ local function convertChain(chain)
         end
       end
       item.pattern = sources.getPatternForPartialWord(m)
-      table.insert(validated, item)
+      table.insert(validated, extendItem(item))
     end
   end
   return validated
