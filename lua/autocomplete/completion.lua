@@ -110,8 +110,9 @@ end
 -- interestingly, <BS> doesn't trigger InsertCharPre, so this runs when
 -- Var.insertChar is false
 local function checkBackspace(src)
-  local prefix = getPrefix(src, getLineToCursor())
-  if #prefix < src.triggerLength then completion.reset() end
+  if Var.forceCompletion then return end
+  local length = #getPrefix(src, getLineToCursor())
+  if length > 0 and length < src.triggerLength then completion.reset() end
 end
 
 ------------------------------------------------------------------------
@@ -219,7 +220,7 @@ end
 -- prefix length:     auto popup should be only triggered after a certain number
 --                    of characters has been entered
 -- forceCompletion:   by manual completion or manual source change, it bypasses
---                    prefix lenght check
+--                    prefix length check
 -- check regex:       also source-specific, for sources without triggers
 --
 -- If no completion can/should be tried for the current source, try the next
