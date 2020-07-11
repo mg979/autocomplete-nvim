@@ -37,7 +37,6 @@ function completion.retry()
 end
 
 function completion.reset()
-  Var.changedTick = 0
   Var.chainIndex = 1
   asynch.stop()
   popup.dismiss()
@@ -105,6 +104,14 @@ local function getPrefix(src, line_to_cursor)
   local from_column    = vim.fn.match(line_to_cursor, src.pattern or '\\k*$')
   local prefix         = line_to_cursor:sub(from_column+1)
   return prefix, from_column
+end
+
+-- when backspacing beyond triggerLength, close popup
+-- interestingly, <BS> doesn't trigger InsertCharPre, so this runs when
+-- Var.insertChar is false
+local function checkBackspace(src)
+  local prefix = getPrefix(src, getLineToCursor())
+  if #prefix < src.triggerLength then completion.reset() end
 end
 
 ------------------------------------------------------------------------
@@ -237,7 +244,7 @@ function completion.try()
   openHover() -- open hover popup if appropriate
 
   -- stop if no new character has been inserted, or reset the flag
-  if not Var.insertChar then return else Var.insertChar = false end
+  if not Var.insertChar then return checkBackspace(src) else Var.insertChar = false end
 
   -- get content of the line up to current position
   local line_to_cursor = getLineToCursor()
