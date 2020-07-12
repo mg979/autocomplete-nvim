@@ -316,9 +316,9 @@ function completion.ctrlx(mode)
   -- if popup is visible we don't have to mess with vim completion
   if pumvisible() then return end
   -- calling a completion method when the option is not set would cause an error
-  if mode == "omni" and vim.bo.omnifunc == "" then return end
-  if mode == "user" and vim.bo.completefunc == "" then return end
-  if mode == "spel" and not vim.wo.spell then return end
+  if mode == "omni" and vim.bo.omnifunc == "" then return completion.nextSource() end
+  if mode == "user" and vim.bo.completefunc == "" then return completion.nextSource() end
+  if mode == "spel" and not vim.wo.spell then return completion.nextSource() end
   -- if the keys won't be followed by a popup, we'll change source
   local keys = sources.registered[mode].keys
   keys = keys .. "<c-r>=pumvisible()?'':autocomplete#nextSource()<cr>"
