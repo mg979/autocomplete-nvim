@@ -352,10 +352,11 @@ end
 ------------------------------------------------------------------------
 
 function asynch.completion(methods, prefix, from_column)
-  -- we inform that there's a completion attempt running
-  Var.canTryCompletion = false
   local items_array, callback_array = getArrays(methods, prefix, from_column)
   if not next(items_array) then return completion.nextSource() end
+
+  -- we inform that there's a completion attempt running
+  Var.canTryCompletion = false
 
   asynch.timer = vim.loop.new_timer()
   asynch.timer:start(20, 50, vim.schedule_wrap(function()
