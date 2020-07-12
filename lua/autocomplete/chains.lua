@@ -46,19 +46,19 @@ local defaultScopedChain = {
 
 -- default chain to be used if no valid chain can be fetched from definitions
 local function getDefaultChain()
-  return vim.g._autocomplete_default_chain or {
+  return M.defaultChain or {
         comment = { 'file', 'keyn' },
         default = { {'snippet', 'lsp'}, 'file', 'keyn' }
       }
 end
 
 local function verifyDefaultChain()
-  if vim.g._autocomplete_default_chain then
+  if M.defaultChain then
     return
   elseif not vim.g.autocomplete.chains.default then
-    vim.g._autocomplete_default_chain = defaultScopedChain
+    M.defaultChain = defaultScopedChain
   else
-    vim.g._autocomplete_default_chain = M.toScoped(vim.g.autocomplete.chains.default, 1)
+    M.defaultChain = M.toScoped(vim.g.autocomplete.chains.default, 1)
   end
 end
 
@@ -216,7 +216,8 @@ local function bufferChain(filetype)
   verifyDefaultChain()
 
   -- chain could be local to buffer
-  local chain = vim.b.autocomplete_chain or getGlobalChain(filetype)
+  local chain = vim.b.autocomplete_chain and
+                M.toScoped(vim.b.autocomplete_chain) or getGlobalChain(filetype)
 
   local validated = {}
   for scope, scopedChain in pairs(chain) do
@@ -224,7 +225,7 @@ local function bufferChain(filetype)
   end
   -- store chain in buffer variable
   Var.chains[bufnr] = validated
-  -- print(vim.inspect(validated)) --DEBUG
+  if vim.g.autocomplete.debug then print(vim.inspect(validated)) end
   return validated
 end
 
