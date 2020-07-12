@@ -30,9 +30,6 @@ local M = {}
 --                           local defaults                           --
 ------------------------------------------------------------------------
 
--- trigger length to be used for method if it doesn't define it in its table
-local defaultTriggerLength = vim.g.autocomplete.trigger_length
-
 -- default chain to be used if no valid chain can be fetched from definitions
 local defaultScopedChain = {
     comment = { 'file', 'keyn' },
@@ -125,26 +122,15 @@ end
 --                          chain validation                          --
 ------------------------------------------------------------------------
 
--- add missing members in valid sources
-local function fixItem(item)
-  -- make sure the method has a defined triggerLength
-  if not sources.registered[item].triggerLength then
-    sources.registered[item].triggerLength = defaultTriggerLength
-  end
-end
-
 -- check that all elements are valid sources
 function M.validateChainItem(item)
   if util.is_list(item) then
     -- if the item is a list, elements cannot be ins-completion sources
     for _, v in ipairs(item) do
-      if sources.registered[v].insCompletion then return nil
-      else fixItem(v) end
+      if sources.registered[v].insCompletion then return nil end
     end
   elseif not sources.registered[item] then
     return nil
-  else
-    fixItem(item)
   end
   return item
 end
@@ -184,15 +170,16 @@ local function convertChain(chain)
             item.asynch = true
           end
           -- item.triggerLength will be the highest of the methods triggerLength's
-          if not tl or sources.registered[v].triggerLength < tl then
-            tl = sources.registered[v].triggerLength
-          end
+          local mtl = sources.registered[v].triggerLength or
+                      vim.g.autocomplete.trigger_length
+          if not tl or mtl < tl then tl = mtl end
         end
         item.triggerLength = tl
       else
         item.asynch = sources.registered[m].asynch
         item.methods = {m}
-        item.triggerLength = sources.registered[m].triggerLength or defaultTriggerLength
+        item.triggerLength = sources.registered[m].triggerLength or
+                             vim.g.autocomplete.trigger_length
         item.insCompletion = sources.registered[m].insCompletion
       end
       item.pattern = sources.getPatternForPartialWord(m)

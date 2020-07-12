@@ -124,17 +124,19 @@ end
 local function getArrays(methods, prefix, from_column)
   local callback_array = {}
   local items_array = {}
-  for _, s in ipairs(methods) do
-    local src = sources.registered[s]
+  for _, m in ipairs(methods) do
+    local mtd = sources.registered[m]
     -- we include the source in the popup only if we typed enough characters
     -- if #prefix == 0, it means a non-keyword char has triggered the completion
     -- (example: '.' for member completion), in this case we include it anyway
-    if Var.forceCompletion or #prefix == 0 or src.triggerLength <= #prefix then
-      table.insert(callback_array, src.callback or true)
-      -- a bit messy: we can have only src.items or we can have both
-      -- src.generateItems and src.items (both must be functions)
-      if src.generateItems then src.generateItems(prefix, from_column) end
-      if src.items then table.insert(items_array, src.items) end
+    if Var.forceCompletion
+            or #prefix == 0
+            or (mtd.triggerLength or vim.g.autocomplete.trigger_length) <= #prefix then
+      table.insert(callback_array, mtd.callback or true)
+      -- a bit messy: we can have only mtd.items or we can have both
+      -- mtd.generateItems and mtd.items (both must be functions)
+      if mtd.generateItems then mtd.generateItems(prefix, from_column) end
+      if mtd.items then table.insert(items_array, mtd.items) end
     end
   end
   return items_array, callback_array

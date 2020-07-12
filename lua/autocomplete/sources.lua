@@ -30,7 +30,6 @@ M.registered = {
     items = lsp.getLspCompletions,
     asynch = true,
     triggers = function() return vim.b.completion_triggers.lsp or vim.b.lsp_triggers end,
-    triggerLength = vim.g.autocomplete.trigger_length,
   },
   ['snippet'] = {
     items = snippet.getSnippets,
@@ -41,7 +40,6 @@ M.registered = {
     callback = path.getCallback,
     items = path.getPaths,
     asynch = true,
-    triggerLength = vim.g.autocomplete.trigger_length,
     pattern = is_path,
   },
 }
@@ -69,7 +67,6 @@ for k,v in pairs(ctrlx) do
     insCompletion   = true,
     keys            = v,
     asynch          = false,
-    triggerLength   = vim.g.autocomplete.trigger_length,
     pattern         = k == 'file' and is_path or nil,
     notIfPumvisible = k == 'line' and true or nil
   }
