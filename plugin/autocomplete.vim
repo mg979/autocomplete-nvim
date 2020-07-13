@@ -49,11 +49,16 @@ inoremap <silent> <Plug>(InsCompletion) <C-r>=g:autocomplete_inscompletion<CR>
 inoremap <silent> <Plug>(ShowHover) <C-r>=luaeval("require'autocomplete'.showHover()")<CR>
 
 fun! autocomplete#confirm() abort
-  if pumvisible() && complete_info()["selected"] >= 0
+  let key = get(g:autocomplete, 'confirm_key', '')
+  if pumvisible() && complete_info()["selected"] != -1
     lua require'autocomplete'.confirmCompletion()
     return "\<C-Y>"
+  elseif pumvisible() && key == "\<C-Y>"
+    return "\<C-G>\<C-G>"
+  elseif pumvisible()
+    return "\<C-G>\<C-G>" . key
   else
-    return "\<C-G>\<C-G>" . get(g:autocomplete, 'confirm_key', '')
+    return key
   endif
 endfun
 
