@@ -6,7 +6,7 @@ local util = require 'autocomplete.util'
 local Var = require 'autocomplete.manager'
 
 local M = {}
-local is_path = vim.fn.has('win32') == 1 and '\\\\\\?f*$' or '/\\?\\f*$'
+local is_path = vim.fn.has('win32') == 1 and '\\\\?\\f*$' or '/\\?\\f*$'
 
 
 ----------------------------------------------------------------------------------------
