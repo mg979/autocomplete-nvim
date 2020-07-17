@@ -254,6 +254,9 @@ function completion.try()
   -- stop if no new character has been inserted, or reset the flag
   if not Var.insertChar then return checkBackspace(src) else Var.insertChar = false end
 
+  -- after we handled backspacing, if popup is visible we leave it alone
+  if pumvisible() then return end
+
   -- get content of the line up to current position
   local line_to_cursor = getLineToCursor()
 
