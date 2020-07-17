@@ -17,6 +17,7 @@ manager = {
   chains = {},                 -- here we store validated chains for each buffer
   activeChain = nil,           -- currently used completion chain
   chainIndex = 1,              -- current index in loaded chain
+  noSelect = false,            -- if 'noselect' in 'completeopt' must be restored
 }
 
 function manager.init()

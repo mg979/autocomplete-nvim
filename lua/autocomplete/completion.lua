@@ -164,6 +164,10 @@ end
 -- Manually triggered completion
 function popup.manual()
   Var.forceCompletion = true
+  if string.find(vim.o.completeopt, 'noselect') then
+    Var.noSelect = true
+    vim.api.nvim_command('set completeopt-=noselect')
+  end
   if pumvisible() or not Var.canTryCompletion then
     return completion.retry() -- manual completion will be retriggered
   end

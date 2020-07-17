@@ -22,6 +22,11 @@ function M.on_InsertCharPre()
   if vim.fn.pumvisible() == 0 then
     Var.chainIndex = 1
   end
+  -- restore 'noselect' in 'completeopt'
+  if Var.noSelect then
+    Var.noSelect = false
+    vim.api.nvim_command('set completeopt+=noselect')
+  end
 end
 
 function M.on_InsertLeave()
