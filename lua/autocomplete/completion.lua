@@ -143,7 +143,7 @@ local function getArrays(methods, prefix, from_column)
 end
 
 local function stopOnPumvisible(src)
-  return src.notIfPumvisible or
+  return src.allowBackspace or
          vim.fn.complete_info()['mode'] == 'whole_line' or
          vim.fn.complete_info()['mode'] == 'files'
 end

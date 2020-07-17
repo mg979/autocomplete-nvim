@@ -68,7 +68,7 @@ for k,v in pairs(ctrlx) do
     keys            = v,
     asynch          = false,
     pattern         = k == 'file' and is_path or nil,
-    notIfPumvisible = (k == 'file' or k == 'line') and true or nil
+    allowBackspace  = (k == 'file' or k == 'line') and true or nil
   }
 end
 

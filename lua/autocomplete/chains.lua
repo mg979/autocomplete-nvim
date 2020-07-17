@@ -21,7 +21,7 @@ local M = {}
 --
 -- [optional]
 --   pattern:         if not nil, it's the pattern to be used for the prefix
---   notIfPumvisible: stop evaluating completions if popup is already visible
+--   allowBackspace:  leave popup alone also when backspacing
 -- }
 
 
@@ -169,6 +169,9 @@ local function convertChain(chain)
           if sources.registered[v].asynch then
             item.asynch = true
           end
+          if sources.registered[v].allowBackspace then
+            item.allowBackspace = true
+          end
           -- item.triggerLength will be the highest of the methods triggerLength's
           local mtl = sources.registered[v].triggerLength or
                       vim.g.autocomplete.trigger_length
@@ -181,6 +184,7 @@ local function convertChain(chain)
         item.triggerLength = sources.registered[m].triggerLength or
                              vim.g.autocomplete.trigger_length
         item.insCompletion = sources.registered[m].insCompletion
+        item.allowBackspace = sources.registered[m].allowBackspace
       end
       item.pattern = sources.getPatternForPartialWord(m)
       table.insert(validated, extendItem(item))
