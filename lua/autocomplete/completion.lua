@@ -414,7 +414,10 @@ local function stopChanging()
 end
 
 function completion.nextSource()
-  if Var.chainIndex ~= #Var.activeChain then
+  -- ensure that the active chain has been initialized
+  if not Var.activeChain then
+    popup.manual()
+  elseif Var.chainIndex ~= #Var.activeChain then
     Var.chainIndex = Var.chainIndex + 1
     completion.retry()
   else
