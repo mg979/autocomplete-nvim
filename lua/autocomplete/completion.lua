@@ -144,7 +144,8 @@ end
 
 local function stopOnPumvisible(src)
   return src.notIfPumvisible or
-         vim.fn.complete_info()['mode'] == 'whole_line'
+         vim.fn.complete_info()['mode'] == 'whole_line' or
+         vim.fn.complete_info()['mode'] == 'files'
 end
 
 

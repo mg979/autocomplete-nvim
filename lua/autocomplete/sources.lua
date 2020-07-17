@@ -6,7 +6,7 @@ local util = require 'autocomplete.util'
 local Var = require 'autocomplete.manager'
 
 local M = {}
-local is_path = vim.fn.has('win32') == 1 and '\\\\?\\f*$' or '/\\?\\f*$'
+local is_path = '\\f*$'
 
 
 ----------------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ for k,v in pairs(ctrlx) do
     keys            = v,
     asynch          = false,
     pattern         = k == 'file' and is_path or nil,
-    notIfPumvisible = k == 'line' and true or nil
+    notIfPumvisible = (k == 'file' or k == 'line') and true or nil
   }
 end
 
