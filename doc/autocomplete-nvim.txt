@@ -8,9 +8,10 @@ CONTENTS                                                   *autocomplete-nvim*
     3. Prerequisite ............... |autocomplete-prerequisite|
     4. Setup ...................... |autocomplete-setup|
     5. Plugs ...................... |autocomplete-plugs|
-    6. Options .................... |autocomplete-options|
-    7. Chains ..................... |autocomplete-chains|
-    8. Buffer-local options ....... |autocomplete-buffer-options|
+    6. Commands ................... |autocomplete-commands|
+    7. Options .................... |autocomplete-options|
+    8. Chains ..................... |autocomplete-chains|
+    9. Buffer-local options ....... |autocomplete-buffer-options|
 
 
 
@@ -87,6 +88,31 @@ PLUGS                                                     *autocomplete-plugs*
                               Useful if you disable auto_hover but want to
                               show it on demand.
 
+
+
+==============================================================================
+COMMANDS                                               *autocomplete-commands*
+
+                                                           *:CompletionToggle* 
+:CompletionToggle ~
+
+  Toggle automatic completion popup on current buffer.
+
+                                                            *:CompletionChain* 
+:CompletionChain ~
+
+  Show the completion chain for the active buffer.
+
+                                                      *:CompletionUpdateChain* 
+:CompletionUpdateChain ~
+
+  Reset the completion chain for the active buffer, so that if you modified
+  the global setting (|g:autocomplete.chains|), it will be updated.
+
+                                                       *:LspTriggerCharacters* 
+:LspTriggerCharacters ~
+
+  Show trigger characters used by the LSP client in the current buffer.
 
 
 ==============================================================================

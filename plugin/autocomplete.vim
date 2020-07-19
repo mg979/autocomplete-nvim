@@ -40,6 +40,7 @@ let g:autocomplete.sources = get(g:autocomplete, 'sources', {})
 command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()
 command! -bar LspTriggerCharacters   lua print(vim.inspect(require'autocomplete.sources'.lspTriggerCharacters()))
 command! -bar CompletionChain lua print(vim.inspect(require'autocomplete.manager'.chains[vim.fn.bufnr()]))
+command! -bar CompletionUpdateChain lua require'autocomplete.chains'.updateChain()
 
 inoremap <silent> <Plug>(TabComplete) <C-r>=autocomplete#tab()<CR>
 inoremap <silent> <Plug>(Autocomplete) <C-r>=luaeval("require'autocomplete'.manualCompletion()")<CR>

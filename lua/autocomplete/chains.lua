@@ -228,5 +228,10 @@ function M.getChain()
   return getScopedChain(bufferChain(vim.bo.filetype))
 end
 
+function M.updateChain()
+  Var.chains[vim.fn.bufnr()] = nil
+  Var.activeChain = M.getChain()
+end
+
 
 return M
