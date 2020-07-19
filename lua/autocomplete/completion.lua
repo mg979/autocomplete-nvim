@@ -304,7 +304,7 @@ end
 -- run the appropriate completion method
 function completion.perform(src, prefix, from_column)
   vim.api.nvim_set_var('autocomplete_current_completion', table.concat(src.methods, ','))
-  if src.insCompletion then
+  if src.feedKeys then
     completion.ctrlx(src.methods[1])
   elseif src.asynch then
     asynch.completion(src.methods, prefix, from_column)

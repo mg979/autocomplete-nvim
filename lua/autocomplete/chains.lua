@@ -16,7 +16,7 @@ local M = {}
 -- {
 --   methods:         a list of methods (can be a single method in a list)
 --   asynch:          boolean
---   insCompletion:   boolean
+--   feedKeys:        boolean (the source uses feedkeys for the popup)
 --   triggerLength:   the minimum trigger length for the methods
 --
 -- [optional]
@@ -127,7 +127,7 @@ function M.validateChainItem(item)
   if util.is_list(item) then
     -- if the item is a list, elements cannot be ins-completion sources
     for _, v in ipairs(item) do
-      if sources.registered[v].insCompletion then return nil end
+      if sources.registered[v].feedKeys then return nil end
     end
   elseif not sources.registered[item] then
     return nil
@@ -183,7 +183,7 @@ local function convertChain(chain)
         item.methods = {m}
         item.triggerLength = sources.registered[m].triggerLength or
                              vim.g.autocomplete.trigger_length
-        item.insCompletion = sources.registered[m].insCompletion
+        item.feedKeys = sources.registered[m].feedKeys
         item.allowBackspace = sources.registered[m].allowBackspace
       end
       item.pattern = sources.getPatternForPartialWord(m)

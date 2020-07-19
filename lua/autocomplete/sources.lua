@@ -64,7 +64,7 @@ local ctrlx = {
 
 for k,v in pairs(ctrlx) do
   M.registered[k] = {
-    insCompletion   = true,
+    feedKeys        = true,
     keys            = v,
     asynch          = false,
     pattern         = k == 'file' and is_path or nil,
@@ -106,7 +106,7 @@ function M.getTriggers(src)
   for _, m in ipairs(src.methods) do
     -- for ins-completion methods, trigger is regex-based
     -- we just make exceptions for omni/tags completion
-    if src.insCompletion then
+    if src.feedKeys then
       return m == 'omni' and {'.'} or
              m == 'tags' and {'.'} or {}
     end
@@ -128,7 +128,7 @@ end
 function M.checkRegex(src, line_to_cursor)
   for _, m in ipairs(src.methods) do
     -- ins-completion methods are always ok
-    if src.insCompletion then return true end
+    if src.feedKeys then return true end
     -- if method.regex is absent, we assume it can match
     if M.registered[m].regex == nil or M.registered[m].regex == true then return true
     elseif M.registered[m].regex == false then return false end
