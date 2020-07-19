@@ -152,42 +152,46 @@ local function extendItem(item)
   return item
 end
 
+-- turn a chain member into a table
+local function convertItem(m)
+  local item = {}
+  if util.is_list(m) then
+    local tl
+    item.methods = m
+    item.asynch = false
+    for _, v in ipairs(m) do
+      -- item.asynch will be true if any of the methods is asynch
+      if sources.registered[v].asynch then
+        item.asynch = true
+      end
+      if sources.registered[v].allowBackspace then
+        item.allowBackspace = true
+      end
+      -- item.triggerLength will be the highest of the methods triggerLength's
+      local mtl = sources.registered[v].triggerLength or
+                  vim.g.autocomplete.trigger_length
+      if not tl or mtl < tl then tl = mtl end
+    end
+    item.triggerLength = tl
+  else
+    item.asynch = sources.registered[m].asynch
+    item.methods = {m}
+    item.triggerLength = sources.registered[m].triggerLength or
+                         vim.g.autocomplete.trigger_length
+    item.feedKeys = sources.registered[m].feedKeys
+    item.allowBackspace = sources.registered[m].allowBackspace
+  end
+  item.pattern = sources.getPatternForPartialWord(m)
+  return extendItem(item)
+end
+
 -- each validated element must be converted to a table
 -- this process takes place once when the buffer-local chain is assigned
 local function convertChain(chain)
   local validated = {}
   for _, m in ipairs(chain) do
     if M.validateChainItem(m) then
-      -- turn each chain member into a table
-      local item = {}
-      if util.is_list(m) then
-        local tl
-        item.methods = m
-        item.asynch = false
-        for _, v in ipairs(m) do
-          -- item.asynch will be true if any of the methods is asynch
-          if sources.registered[v].asynch then
-            item.asynch = true
-          end
-          if sources.registered[v].allowBackspace then
-            item.allowBackspace = true
-          end
-          -- item.triggerLength will be the highest of the methods triggerLength's
-          local mtl = sources.registered[v].triggerLength or
-                      vim.g.autocomplete.trigger_length
-          if not tl or mtl < tl then tl = mtl end
-        end
-        item.triggerLength = tl
-      else
-        item.asynch = sources.registered[m].asynch
-        item.methods = {m}
-        item.triggerLength = sources.registered[m].triggerLength or
-                             vim.g.autocomplete.trigger_length
-        item.feedKeys = sources.registered[m].feedKeys
-        item.allowBackspace = sources.registered[m].allowBackspace
-      end
-      item.pattern = sources.getPatternForPartialWord(m)
-      table.insert(validated, extendItem(item))
+      table.insert(validated, convertItem(m))
     end
   end
   return validated
