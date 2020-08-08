@@ -79,7 +79,7 @@ fun! autocomplete#attach() abort
 endfun
 
 fun! autocomplete#nextSource() abort
-  lua require'autocomplete.completion'.nextSource()
+  lua require'autocomplete.completion'.nextSource(true)
   return ''
 endfun
 

@@ -322,13 +322,13 @@ end
 local insplug = vim.api.nvim_replace_termcodes("<Plug>(InsCompletion)", true, false, true)
 
 -- this handles stock vim ins-completion methods
-function completion.ctrlx(mode)
+function completion.ctrlx(mode, autoChange)
   -- if popup is visible we don't have to mess with vim completion
   if pumvisible() then return end
   -- calling a completion method when the option is not set would cause an error
-  if mode == "omni" and vim.bo.omnifunc == "" then return completion.nextSource() end
-  if mode == "user" and vim.bo.completefunc == "" then return completion.nextSource() end
-  if mode == "spel" and not vim.wo.spell then return completion.nextSource() end
+  if mode == "omni" and vim.bo.omnifunc == "" then return completion.nextSource(1) end
+  if mode == "user" and vim.bo.completefunc == "" then return completion.nextSource(1) end
+  if mode == "spel" and not vim.wo.spell then return completion.nextSource(1) end
   -- if the keys won't be followed by a popup, we'll change source
   local keys = sources.registered[mode].keys
   keys = keys .. "<c-r>=pumvisible()?'':autocomplete#nextSource()<cr>"
@@ -336,7 +336,7 @@ function completion.ctrlx(mode)
   keys = vim.api.nvim_replace_termcodes(keys, true, false, true)
   -- this variable holds the keys that will be inserted by <Plug>(InsCompletion)
   vim.g.autocomplete_inscompletion = keys
-  vim.api.nvim_feedkeys(insplug, 'm', true)
+  return autoChange and keys or vim.api.nvim_feedkeys(insplug, 'm', true)
 end
 
 -- custom non-asynch completions
@@ -417,12 +417,18 @@ local function stopChanging()
   end
 end
 
-function completion.nextSource()
+function completion.nextSource(autoChange)
   -- ensure that the active chain has been initialized
   if not Var.activeChain then
     popup.manual()
   elseif Var.chainIndex ~= #Var.activeChain then
     Var.chainIndex = Var.chainIndex + 1
+    if autoChange then
+      local src = sources.getCurrent()
+      if src.feedKeys then
+        return completion.ctrlx(src.methods[1])
+      end
+    end
     completion.retry()
   else
     Var.chainIndex = 1
