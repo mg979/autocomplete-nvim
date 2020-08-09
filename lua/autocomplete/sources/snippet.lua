@@ -18,7 +18,7 @@ local function getUltisnipItems(prefix)
   for key, val in pairs(snippetsList) do
     local item = {}
     item.word = key
-    item.kind = ' ↷  ' .. val
+    item.kind = ' ↷  ' .. string.sub(val, 1, 50)
     item.priority = priority
     local user_data = {hover = val}
     item.user_data = user_data
@@ -42,7 +42,7 @@ local function getNeosnippetItems(prefix)
     local user_data = {hover = val.description}
     local item = {}
     item.word = key
-    item.kind = 'Neosnippet'
+    item.kind = ' ↷  ' .. string.sub(val, 1, 50)
     item.priority = priority
     item.user_data = user_data
     item.user_data.snippet = 'Neosnippet'
@@ -53,7 +53,7 @@ end
 
 local function getVsnipItems(prefix)
   if vim.fn.exists('g:loaded_vsnip') == 0 then return {} end
-  local snippetsList = api.nvim_call_function('vsnip#source#find', {api.nvim_buf_get_option(0, 'filetype')})
+  local snippetsList = api.nvim_call_function('vsnip#source#find', {api.nvim_get_current_buf()})
   local sources = {}
   if vim.tbl_isempty(snippetsList) == 0 then
     return {}
@@ -65,8 +65,8 @@ local function getVsnipItems(prefix)
         local user_data = {hover = snippet.description}
         local item = {}
         item.word = word
-        item.kind = 'vim-vsnip'
-        item.menu = snippet.label
+        item.kind = ' ↷  ' .. string.sub(snippet.description, 1, 50)
+        item.menu = ''
         item.priority = priority
         item.user_data = user_data
         item.user_data.snippet = 'vim-vsnip'
