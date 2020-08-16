@@ -79,8 +79,7 @@ fun! autocomplete#attach() abort
 endfun
 
 fun! autocomplete#nextSource() abort
-  lua require'autocomplete.completion'.nextSource(true)
-  return ''
+  return "\<C-g>\<C-g>" . luaeval("require'autocomplete.completion'.nextSource(true)")
 endfun
 
 fun! autocomplete#changeSource(dir) abort

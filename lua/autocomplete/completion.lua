@@ -336,6 +336,7 @@ function completion.ctrlx(mode, autoChange)
   keys = vim.api.nvim_replace_termcodes(keys, true, false, true)
   -- this variable holds the keys that will be inserted by <Plug>(InsCompletion)
   vim.g.autocomplete_inscompletion = keys
+  vim.g.autocomplete_current_completion = mode
   return autoChange and keys or vim.api.nvim_feedkeys(insplug, 'm', true)
 end
 
@@ -426,7 +427,7 @@ function completion.nextSource(autoChange)
     if autoChange then
       local src = sources.getCurrent()
       if src.feedKeys then
-        return completion.ctrlx(src.methods[1])
+        return completion.ctrlx(src.methods[1], true)
       end
     end
     completion.retry()
