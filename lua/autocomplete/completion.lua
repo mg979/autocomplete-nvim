@@ -427,7 +427,9 @@ function completion.nextSource(autoChange)
     if autoChange then
       local src = sources.getCurrent()
       if src.feedKeys then
-        return completion.ctrlx(src.methods[1], true)
+        local prefix = getPrefix(src, getLineToCursor())
+        return #prefix < src.triggerLength and ''
+               or completion.ctrlx(src.methods[1], true)
       end
     end
     completion.retry()
