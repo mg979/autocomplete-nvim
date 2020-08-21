@@ -18,6 +18,7 @@ manager = {
   activeChain = nil,           -- currently used completion chain
   chainIndex = 1,              -- current index in loaded chain
   noSelect = false,            -- if 'noselect' in 'completeopt' must be restored
+  default_pattern = '\\k*$',   -- default pattern for prefix matching
 }
 
 function manager.init()

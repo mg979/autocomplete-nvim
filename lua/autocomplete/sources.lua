@@ -34,6 +34,7 @@ M.registered = {
   ['snippet'] = {
     items = snippet.getSnippets,
     triggerLength = 1,
+    pattern = '\\S*$'
   },
   ['path'] = {
     generateItems = path.triggerFunction,
@@ -146,9 +147,14 @@ end
 --
 function M.getPatternForPartialWord(method)
   if util.is_list(method) then
-    return nil
+    for _,v in ipairs(method) do
+      if M.registered[v].pattern then
+        return M.registered[v].pattern
+      end
+    end
+    return Var.default_pattern
   else
-    return M.registered[method].pattern
+    return M.registered[method].pattern or Var.default_pattern
   end
 end
 

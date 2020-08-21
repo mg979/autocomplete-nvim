@@ -101,7 +101,7 @@ end
 -- from_column:     the column at which the current prefix starts
 -- prefix:          the partial string for which we could find a completion
 local function getPrefix(src, line_to_cursor)
-  local from_column    = vim.fn.match(line_to_cursor, src.pattern or '\\k*$')
+  local from_column    = vim.fn.match(line_to_cursor, src.pattern)
   local prefix         = line_to_cursor:sub(from_column+1)
   return prefix, from_column
 end
