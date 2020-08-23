@@ -55,8 +55,7 @@ end
 
 -- reset several cached settings
 function M.on_BufEnter()
-  local bufnr = vim.fn.bufnr()
-  Var.chains[bufnr] = nil
+  Var.chains[vim.fn.bufnr()] = nil
   -- these LSP triggers were automatically stored, clear them
   if vim.b.lsp_triggers then
     vim.api.nvim_command('unlet b:lsp_triggers')
@@ -115,25 +114,28 @@ end
 
 
 ------------------------------------------------------------------------
---                         confirm completion                         --
+--                      post-completion edits                         --
 ------------------------------------------------------------------------
 
--- post-completion edits handled by lsp client or vim-vsnip
--- @param completed_item the item that has just been selected/completed
-local function PostCompletionEdits(completed_item)
+-- apply additionalTextEdits in LSP specs
+local function applyAddtionalTextEdits(completed_item)
   local item = completed_item.user_data.lsp.completion_item
-  local lnum = api.nvim_win_get_cursor(0)[0]
-  local bufnr = api.nvim_get_current_buf()
-  if item.additionalTextEdits then
-    local edits = vim.tbl_filter(
-    function(x) return x.range.start.line ~= (lnum - 1) end,
-    item.additionalTextEdits
-    )
-    vim.lsp.util.apply_text_edits(edits, bufnr)
-  end
+  -- vim-vsnip have better additional text edits...
   if vim.fn.exists('g:loaded_vsnip_integ') == 1 then
-    api.nvim_call_function('vsnip_integ#on_complete_done_for_lsp',
-    { { completed_item = completed_item, completion_item = item } })
+    vim.fn['vsnip_integ#do_complete_done']({
+      completed_item = completed_item,
+      completion_item = item,
+      apply_additional_text_edits = true
+    })
+  else
+    if item.additionalTextEdits then
+      local lnum = vim.fn.getcurpos()[2]
+      local edits = vim.tbl_filter(
+        function(x) return x.range.start.line ~= (lnum - 1) end,
+        item.additionalTextEdits
+      )
+      vim.lsp.util.apply_text_edits(edits, vim.fn.bufnr())
+    end
   end
 end
 
@@ -152,19 +154,19 @@ function M.confirmCompletion()
 end
 
 function M.hasConfirmedCompletion()
-  local completed_item = api.nvim_get_vvar('completed_item')
+  local completed_item = vim.v.completed_item
   if completed_item.user_data.lsp ~= nil then
-    PostCompletionEdits(completed_item)
+    applyAddtionalTextEdits(completed_item)
   end
   if vim.g.autocomplete.auto_paren == 1 then
     AddParens(completed_item)
   end
   if completed_item.user_data.snippet == 'UltiSnips' then
-    api.nvim_call_function('UltiSnips#ExpandSnippet', {})
+    vim.fn['UltiSnips#ExpandSnippet']()
   elseif completed_item.user_data.snippet == 'Neosnippet' then
     api.nvim_input("<c-r>".."=neosnippet#expand('"..completed_item.word.."')".."<CR>")
   elseif completed_item.user_data.snippet == 'vim-vsnip' then
-    api.nvim_call_function('vsnip#expand', {})
+    vim.fn['vsnip#expand']()
   end
 end
 
