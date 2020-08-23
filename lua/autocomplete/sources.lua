@@ -34,7 +34,8 @@ M.registered = {
   ['snippet'] = {
     items = snippet.getSnippets,
     triggerLength = 1,
-    pattern = '\\S*$'
+    -- accept any punctuation or alphanumeric character, except opening brackets
+    pattern = '\\%([[:punct:][:alnum:]]\\&[^([{]\\)*$'
   },
   ['path'] = {
     generateItems = path.triggerFunction,
