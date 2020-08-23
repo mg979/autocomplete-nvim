@@ -92,5 +92,12 @@ fun! autocomplete#tab() abort
   return pumvisible() ? "\<C-N>" : luaeval("require'autocomplete'.manualCompletion()")
 endfun
 
+" overwrite vsnip_integ autocmd since we handle it on ourself in confirmCompletion
+autocmd InsertEnter * ++once
+      \ if exists('#vsnip_integ') |
+      \   autocmd! vsnip_integ |
+      \   augroup! vsnip_integ |
+      \ end
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
