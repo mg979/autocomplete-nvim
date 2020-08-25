@@ -39,7 +39,10 @@ function M.on_InsertEnter()
   -- setup variables
   completion.init()
   -- start timer for auto popup
-  if vim.b.completion_auto_popup == 1 then completion.popup.auto.start() end
+  if not vim.g.autocomplete.auto_popup_disabled and
+      vim.b.completion_auto_popup == 1 then
+    completion.popup.auto.start()
+  end
 end
 
 -- handle completion confirmation and dismiss hover popup
@@ -86,13 +89,19 @@ function M.addSource(key, value)
   sources.registered[key] = value
 end
 
-function M.toggleCompletion()
-  if vim.b.completion_auto_popup == nil then
+function M.toggleCompletion(disable_all)
+  if disable_all == 1 then
+    local v = vim.g.autocomplete
+    v.auto_popup_disabled = not v.auto_popup_disabled
+    vim.g.autocomplete = v
+    local s = v.auto_popup_disabled and 'disabled' or 'enabled'
+    print('[autocomplete] auto popup ' .. s .. ' for all buffers')
+  elseif vim.b.completion_auto_popup == nil then
     M.initialize()
-  elseif vim.b.completion_auto_popup == 0 then
-    vim.b.completion_auto_popup = 1
   else
-    vim.b.completion_auto_popup = 0
+    vim.b.completion_auto_popup = not vim.b.completion_auto_popup
+    local s = vim.b.completion_auto_popup and 'enabled' or 'disabled'
+    print('[autocomplete] auto popup ' .. s .. ' for current buffer')
   end
 end
 
@@ -141,8 +150,8 @@ end
 
 local function AddParens(completed_item)
   if completed_item.kind == nil then return end
-  if string.match(completed_item.kind, '.*Function.*') ~= nil
-    or string.match(completed_item.kind, '.*Method.*') then
+  if  string.match(completed_item.kind, '.*Function.*') ~= nil or
+      string.match(completed_item.kind, '.*Method.*') then
     api.nvim_input("()<left>")
   end
 end

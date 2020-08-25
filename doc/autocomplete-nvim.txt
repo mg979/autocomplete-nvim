@@ -87,25 +87,29 @@ PLUGS                                                     *autocomplete-plugs*
 ==============================================================================
 COMMANDS                                               *autocomplete-commands*
 
-                                                           *:CompletionToggle* 
+                                                           *:CompletionToggle*
 :CompletionToggle[!] ~
 
   Toggle automatic completion popup on current buffer.
-  <bang> disables it for all buffers (in which it is enabled).
+  <bang> toggles it for all buffers (in which it is enabled).
 
-                                                            *:CompletionChain* 
+  Note that if automatic completion is disabled in a buffer,
+  `CompletionToggle!` can't enable it, because buffer-local state takes
+  precedence. The global state has precedence only if completion is disabled.
+
+                                                            *:CompletionChain*
 :CompletionChain ~
 
   Show the completion chain for the active buffer.
 
-                                                      *:CompletionUpdateChain* 
+                                                      *:CompletionUpdateChain*
 :CompletionUpdateChain ~
 
   Reset the completion chain for the active buffer, so that if you modified
   the global setting (|g:autocomplete.chains|) or buffer-local chain
   (|b:autocomplete_chain|), it will be updated.
 
-                                                         *:CompletionTriggers* 
+                                                         *:CompletionTriggers*
 :CompletionTriggers ~
 
   Show trigger characters used by the LSP client in the current buffer.

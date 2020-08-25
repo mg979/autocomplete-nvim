@@ -37,7 +37,7 @@ let g:autocomplete.chains = get(g:autocomplete, 'chains', {
 
 let g:autocomplete.sources = get(g:autocomplete, 'sources', {})
 
-command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()
+command! -bar -bang CompletionToggle  call autocomplete#toggle(<bang>0)
 command! -bar CompletionTriggers lua print(vim.inspect(require'autocomplete.sources'.lspTriggerCharacters()))
 command! -bar CompletionChain lua print(vim.inspect(require'autocomplete.manager'.chains[vim.fn.bufnr()]))
 command! -bar CompletionUpdateChain lua require'autocomplete.chains'.updateChain()
@@ -62,6 +62,14 @@ fun! autocomplete#confirm() abort
     return "\<C-G>\<C-G>" . key
   else
     return key
+  endif
+endfun
+
+fun! autocomplete#toggle(all) abort
+  if a:all
+    lua require'autocomplete'.toggleCompletion(1)
+  else
+    lua require'autocomplete'.toggleCompletion(0)
   endif
 endfun
 
