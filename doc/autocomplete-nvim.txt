@@ -156,10 +156,10 @@ OPTIONS                                                 *autocomplete-options*
 
 -------------------------------------------------  *g:autocomplete.auto_hover*
 
-    default value: 1
+    default value: 0
 
-  |autocomplete-nvim| can automatically open a hover window when you navigate
-  through the complete items (including basic information of snippets).
+  Open a hover window when you navigate through the complete items (including
+  basic information of snippets).
 
 
 -------------------------------------------------  *g:autocomplete.auto_paren*
@@ -413,6 +413,10 @@ BUFFER-LOCAL OPTIONS                             *autocomplete-buffer-options*
 
   It works as |g:autocomplete.chains|, but it's buffer-specific.
   It is preferred to the global value if it has been defined.
+
+  Note that, if defined, it replaces entirely any global chain that would be
+  valid for the current buffer. |g:autocomplete.chains.default| still fills
+  the holes, though.
 
 
 -----------------------------------------------------  *b:completion_triggers*
