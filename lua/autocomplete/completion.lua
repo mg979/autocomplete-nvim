@@ -106,13 +106,13 @@ local function getPrefix(src, line_to_cursor)
   return prefix, from_column
 end
 
--- when backspacing beyond triggerLength, close popup
+-- when backspacing beyond prefixLen, close popup
 -- interestingly, <BS> doesn't trigger InsertCharPre, so this runs when
 -- Var.insertChar is false
 local function checkBackspace(src)
   if Var.forceCompletion then return end
   local length = #getPrefix(src, getLineToCursor())
-  if length > 0 and length < src.triggerLength then completion.reset() end
+  if length > 0 and length < src.prefixLen then completion.reset() end
 end
 
 ------------------------------------------------------------------------
@@ -129,9 +129,10 @@ local function getArrays(methods, prefix, from_column)
     -- we include the source in the popup only if we typed enough characters
     -- if #prefix == 0, it means a non-keyword char has triggered the completion
     -- (example: '.' for member completion), in this case we include it anyway
+    -- FIXME: create Var.has_triggered instead of using #prefix == 0
     if Var.forceCompletion
             or #prefix == 0
-            or (mtd.triggerLength or vim.g.autocomplete.trigger_length) <= #prefix then
+            or (mtd.prefixLen or vim.g.autocomplete.prefix_length) <= #prefix then
       table.insert(callback_array, mtd.callback or true)
       -- a bit messy: we can have only mtd.items or we can have both
       -- mtd.generateItems and mtd.items (both must be functions)
@@ -274,15 +275,15 @@ function completion.try()
 
   -- don't proceed when typing a new word
   local word_too_short = not can_trigger and
-                         #prefix < src.triggerLength
+                         #prefix < src.prefixLen
 
   -- Resetting the chain here prevents chain advancement, so that even if there
-  -- could be sources with a smaller triggerLength, they won't be reached.
+  -- could be sources with a smaller prefixLen, they won't be reached.
   -- On the other hand, too swift chain advancement would have the bad effect
   -- that earlier sources would rarely trigger, because if they are skipped here
   -- and later sources trigger, we'd be stuck there; I assume sources are added
   -- to the chain in order of importance, so it's better to keep sources with
-  -- greater triggerLength's later in the chain, and reset the chain here if the
+  -- greater prefixLen's later in the chain, and reset the chain here if the
   -- typed word is too short, so that earlier sources trigger more often.
   if word_too_short then return completion.reset() end
 
@@ -428,7 +429,7 @@ function completion.nextSource(autoChange)
       local src = sources.getCurrent()
       if src.feedKeys then
         local prefix = getPrefix(src, getLineToCursor())
-        return #prefix < src.triggerLength and ''
+        return #prefix < src.prefixLen and ''
                or completion.ctrlx(src.methods[1], true)
       end
     end

@@ -3,20 +3,20 @@
 
 CONTENTS                                                   *autocomplete-nvim*
 
-    1. Introduction ............... |autocomplete-introduction|
-    2. Features ................... |autocomplete-features|
-    3. Prerequisite ............... |autocomplete-prerequisite|
-    4. Setup ...................... |autocomplete-setup|
-    5. Plugs ...................... |autocomplete-plugs|
-    6. Commands ................... |autocomplete-commands|
-    7. Options .................... |autocomplete-options|
-    8. Chains ..................... |autocomplete-chains|
-    9. Buffer-local options ....... |autocomplete-buffer-options|
+    1.  Introduction ............... |autocomplete-introduction|
+    2.  Features ................... |autocomplete-features|
+    3.  Prerequisite ............... |autocomplete-prerequisite|
+    4.  Setup ...................... |autocomplete-setup|
+    5.  Plugs ...................... |autocomplete-plugs|
+    6.  Commands ................... |autocomplete-commands|
+    7.  Options .................... |autocomplete-options|
+    8.  Chains ..................... |autocomplete-chains|
+    9.  Buffer-local options ....... |autocomplete-buffer-options|
 
 
 
 ==============================================================================
-INTRODUCTION                                       *autocomplete-introdction*
+INTRODUCTION                                       *autocomplete-introduction*
 
 |autocomplete-nvim| is an auto completion framework that aims to provide
 a better completion experience with neovim's built-in LSP.  Other LSP
@@ -170,15 +170,14 @@ OPTIONS                                                 *autocomplete-options*
   insert parenthesis when completing methods or functions.
 
 
----------------------------------------------  *g:autocomplete.trigger_length*
+---------------------------------------------   *g:autocomplete.prefix_length*
 
     default value: 2
 
-  You can specify keyword length for triggering completion, if the current
-  word is less than keyword length, completion won't be triggered.
+  You can specify the minimum prefix length needed to trigger the completion.
 
-  Note: autocomplete-nvim will ignore keyword length if you're on trigger
-  character.
+  Note: prefix length will be ignored if completion is triggered by
+  a trigger character (source-specific).
 
 
 ------------------------------------------------  *g:autocomplete.confirm_key*
@@ -207,7 +206,7 @@ OPTIONS                                                 *autocomplete-options*
 
 ==============================================================================
 CHAINS                                                   *autocomplete-chains*
-                                                     *g:autocomplete.chains*
+                                                       *g:autocomplete.chains*
 
   |autocomplete-nvim| has chain completion support inspired by
   |vim-mucomplete|. In short, you can define a list of completion methods to

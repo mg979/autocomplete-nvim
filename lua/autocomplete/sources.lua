@@ -18,9 +18,10 @@ local is_path = '\\f*$'
 --| callback:      becomes true when item generation has been completed               -|
 --| items:         function to collect the completion items once generated            -|
 --| asynch:        boolean that flags asynch sources                                  -|
---| triggerLength: minimum length of the word before completion can trigger           -|
+--| prefixLen:     minimum prefix length before completion can trigger                -|
 --| triggers:      [func->] list of chars that can trigger the completion             -|
 --| regex:         bool or regex pattern that can trigger the completion              -|
+--| pattern:       the prefix pattern that triggers the completion                    -|
 ----------------------------------------------------------------------------------------
 
 M.registered = {
@@ -33,7 +34,7 @@ M.registered = {
   },
   ['snippet'] = {
     items = snippet.getSnippets,
-    triggerLength = 1,
+    prefixLen = 1,
     -- accept any punctuation or alphanumeric character, except opening brackets
     pattern = '\\%([[:punct:][:alnum:]]\\&[^([{]\\)*$'
   },

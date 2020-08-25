@@ -18,7 +18,7 @@ let s:autocomplete = {
       \ 'docked_hover':           get(g:autocomplete, 'docked_hover', 0),
       \ 'minimum_size':           get(g:autocomplete, 'minimum_size', 5),
       \ 'maximum_size':           get(g:autocomplete, 'maximum_size', 20),
-      \ 'trigger_length':         get(g:autocomplete, 'trigger_length', 2),
+      \ 'prefix_length':          get(g:autocomplete, 'prefix_length', 2),
       \ 'timer_cycle':            get(g:autocomplete, 'timer_cycle', 80),
       \ 'sorting':                get(g:autocomplete, 'sorting', 'alphabet'),
       \ 'fuzzy_match':            get(g:autocomplete, 'fuzzy_match', 0),

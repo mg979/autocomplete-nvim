@@ -17,7 +17,7 @@ local M = {}
 --   methods:         a list of methods (can be a single method in a list)
 --   asynch:          boolean
 --   feedKeys:        boolean (the source uses feedkeys for the popup)
---   triggerLength:   the minimum trigger length for the methods
+--   prefixLen:       the minimum prefix length for the methods
 --
 -- [optional]
 --   pattern:         if not nil, it's the pattern to be used for the prefix
@@ -167,17 +167,17 @@ local function convertItem(m)
       if sources.registered[v].allowBackspace then
         item.allowBackspace = true
       end
-      -- item.triggerLength will be the highest of the methods triggerLength's
-      local mtl = sources.registered[v].triggerLength or
-                  vim.g.autocomplete.trigger_length
+      -- item.prefixLen will be the highest of the methods prefixLen's
+      local mtl = sources.registered[v].prefixLen or
+                  vim.g.autocomplete.prefix_length
       if not tl or mtl < tl then tl = mtl end
     end
-    item.triggerLength = tl
+    item.prefixLen = tl
   else
     item.asynch = sources.registered[m].asynch
     item.methods = {m}
-    item.triggerLength = sources.registered[m].triggerLength or
-                         vim.g.autocomplete.trigger_length
+    item.prefixLen = sources.registered[m].prefixLen or
+                     vim.g.autocomplete.prefix_length
     item.feedKeys = sources.registered[m].feedKeys
     item.allowBackspace = sources.registered[m].allowBackspace
   end
