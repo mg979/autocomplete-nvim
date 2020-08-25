@@ -14,7 +14,7 @@ let s:autocomplete = {
       \ 'auto_popup':             get(g:autocomplete, 'auto_popup', 1),
       \ 'auto_signature':         get(g:autocomplete, 'auto_signature', 1),
       \ 'auto_paren':             get(g:autocomplete, 'auto_paren', 0),
-      \ 'auto_hover':             get(g:autocomplete, 'auto_hover', 1),
+      \ 'auto_hover':             get(g:autocomplete, 'auto_hover', 0),
       \ 'docked_hover':           get(g:autocomplete, 'docked_hover', 0),
       \ 'minimum_size':           get(g:autocomplete, 'minimum_size', 5),
       \ 'maximum_size':           get(g:autocomplete, 'maximum_size', 20),
@@ -38,12 +38,13 @@ let g:autocomplete.chains = get(g:autocomplete, 'chains', {
 let g:autocomplete.sources = get(g:autocomplete, 'sources', {})
 
 command! -nargs=0 -bar CompletionToggle  lua require'autocomplete'.toggleCompletion()
-command! -bar LspTriggerCharacters   lua print(vim.inspect(require'autocomplete.sources'.lspTriggerCharacters()))
+command! -bar CompletionTriggers lua print(vim.inspect(require'autocomplete.sources'.lspTriggerCharacters()))
 command! -bar CompletionChain lua print(vim.inspect(require'autocomplete.manager'.chains[vim.fn.bufnr()]))
 command! -bar CompletionUpdateChain lua require'autocomplete.chains'.updateChain()
 
-inoremap <silent> <Plug>(TabComplete) <C-r>=autocomplete#tab()<CR>
-inoremap <silent> <Plug>(Autocomplete) <C-r>=luaeval("require'autocomplete'.manualCompletion()")<CR>
+inoremap <silent> <Plug>(TabComplete) <C-r>=autocomplete#tab(1)<CR>
+inoremap <silent> <Plug>(TabCompletePrev) <C-r>=autocomplete#tab(0)<CR>
+inoremap <silent> <Plug>(ForceComplete) <C-r>=luaeval("require'autocomplete'.manualCompletion()")<CR>
 inoremap <silent> <Plug>(NextSource) <C-r>=autocomplete#changeSource('next')<CR>
 inoremap <silent> <Plug>(PrevSource) <C-r>=autocomplete#changeSource('prev')<CR>
 inoremap <expr><silent> <Plug>(ConfirmCompletion) autocomplete#confirm()
@@ -88,8 +89,8 @@ fun! autocomplete#changeSource(dir) abort
   return ret . "\<C-r>=luaeval(\"require'autocomplete.completion'.".a:dir."Source()\")\<CR>"
 endfun
 
-fun! autocomplete#tab() abort
-  return pumvisible() ? "\<C-N>" : luaeval("require'autocomplete'.manualCompletion()")
+fun! autocomplete#tab(next) abort
+  return pumvisible() ? a:next ? "\<C-N>" : "\<C-P>" : luaeval("require'autocomplete'.manualCompletion()")
 endfun
 
 " overwrite vsnip_integ autocmd since we handle it on ourself in confirmCompletion
