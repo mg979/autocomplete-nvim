@@ -1,0 +1,432 @@
+*autocomplete-nvim.txt*
+
+
+CONTENTS                                                   *autocomplete-nvim*
+
+    1. Introduction ............... |autocomplete-introduction|
+    2. Features ................... |autocomplete-features|
+    3. Prerequisite ............... |autocomplete-prerequisite|
+    4. Setup ...................... |autocomplete-setup|
+    5. Plugs ...................... |autocomplete-plugs|
+    6. Commands ................... |autocomplete-commands|
+    7. Options .................... |autocomplete-options|
+    8. Chains ..................... |autocomplete-chains|
+    9. Buffer-local options ....... |autocomplete-buffer-options|
+
+
+
+==============================================================================
+INTRODUCTION                                       *autocomplete-introdction*
+
+|autocomplete-nvim| is an auto completion framework that aims to provide
+a better completion experience with neovim's built-in LSP.  Other LSP
+functionality is not supported. It also provides chained completion, inspired
+by |vim-mucomplete|.
+
+
+
+==============================================================================
+FEATURES                                               *autocomplete-features*
+
+- Asynchronous completion using libuv api
+- Optionally open hover windows when popupmenu is available
+- Optionally open signature help if it's available
+- Snippets integration: |UltiSnips|, |Neosnippet| and |vim-vsnip|
+- support for vim |ins-completion| methods
+- Apply additionalTextEdits in LSP spec if it's available
+- Chained completion inspired by |vim-mucomplete|
+
+
+
+==============================================================================
+PREREQUISITES                                     *autocomplete-prerequisites*
+
+- Neovim 0.5.0
+- |nvim-lsp| if you want to take advantage the LSP completions
+
+
+
+==============================================================================
+SETUP                                                     *autocomplete-setup*
+
+- autocomplete-nvim requires several autocommands set up to work properly, you
+  should set it up using the `on_attach` function like this.
+>
+  lua require'nvim_lsp'.pyls.setup{on_attach=require'autocomplete'.initialize}
+<
+  (change `pyls` to whichever language server you are using)
+
+- If you want autocomplete-nvim to be set up for all buffers instead of only
+  being used when lsp is enabled, call the `initialize()` function directly:
+>
+  " Use autocomplete-nvim in every buffer
+  autocmd BufEnter * lua require'autocomplete'.initialize()
+<
+  Note: it's okay to set up autocomplete-nvim without lsp. It will simply
+  use other completion sources instead (snippets, |ins-completion|, additional
+  sources that you may provide).
+
+
+
+==============================================================================
+PLUGS                                                     *autocomplete-plugs*
+
+<Plug>(TabComplete)           Force completion, or select next completion in
+                              popup.
+
+<Plug>(Autocomplete)          Force completion.
+
+<Plug>(NextSource)            Move to next source in the currently active
+                              completion chain.
+
+<Plug>(PrevSource)            Move to previous source in the currently active
+                              completion chain.
+
+<Plug>(ConfirmCompletion)     As <C-Y>, but can also expand snippets.
+
+<Plug>(ShowHover)             Show the hover popup from insert mode (ONLY).
+                              Useful if you disable auto_hover but want to
+                              show it on demand.
+
+
+
+==============================================================================
+COMMANDS                                               *autocomplete-commands*
+
+                                                           *:CompletionToggle* 
+:CompletionToggle ~
+
+  Toggle automatic completion popup on current buffer.
+
+                                                            *:CompletionChain* 
+:CompletionChain ~
+
+  Show the completion chain for the active buffer.
+
+                                                      *:CompletionUpdateChain* 
+:CompletionUpdateChain ~
+
+  Reset the completion chain for the active buffer, so that if you modified
+  the global setting (|g:autocomplete.chains|), it will be updated.
+
+                                                       *:LspTriggerCharacters* 
+:LspTriggerCharacters ~
+
+  Show trigger characters used by the LSP client in the current buffer.
+
+
+==============================================================================
+OPTIONS                                                 *autocomplete-options*
+
+  Initialize the options dictionary first:
+>
+  let g:autocomplete = {}
+
+- - - - - - - - - - - - - - - - - - - - - - - - - *g:autocomplete.auto_popup*
+
+    This variable enable automatically popup window for completion. Set
+    this value to 0 if you don't want automatically popup window.
+
+    If you disable auto popup menu, you can manually trigger completion:
+>
+    imap <Tab> <Plug>(TabComplete)
+<
+    default value: 1
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.snippets*
+
+    You can specify which snippet engines you want to use. Possible values
+    are |UltiSnips|, |Neosnippet| and |vim-vsnip|.
+
+    Note: without setting this variable, |autocomplete-nvim| will try to
+    autodetect one of the plugins above, so you don't really need to set this
+    variable unless you want to enforce a specific snippet engine.
+
+    default value: ""
+
+
+- - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.auto_signature*
+
+    By default signature help opens automatically whenever it is availabe.
+
+    default value: 1
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.auto_hover*
+
+    |autocomplete-nvim| can automatically open a hover window when you navigate
+    through the complete items (including basic information of snippets).
+
+    default value: 1
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.auto_paren*
+
+    Enable the auto insert parenthesis feature. autocomplete-nvim will
+    insert parenthesis when completing methods or functions.
+
+    default value: 0
+
+
+- - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.trigger_length*
+
+    You can specify keyword length for triggering completion, if the current
+    word is less than keyword length, completion won't be triggered.
+
+    Note: autocomplete-nvim will ignore keyword length if you're on trigger
+    character.
+
+    default value: 2
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - *g:autocomplete.confirm_key*
+
+    You can specify a key to use to confirm completion (which will select
+    the completion items and expand snippets if possible).
+
+    Note: Make sure to escape special keys:
+>
+    let g:autocomplete.confirm_key = "\<C-y>"
+<
+    default value: ""
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - *g:autocomplete.timer_cycle*
+
+    autocomplete-nvim uses a timer to control the rate of completion.
+    Adjust the timer rate by setting this value.
+
+    Note: values lower than the default are not recommended.
+
+    default value: 80
+
+
+
+==============================================================================
+CHAINS                                                   *autocomplete-chains*
+                                                       *g:autocomplete.chains*
+
+    |autocomplete-nvim| has chain completion support inspired by
+    |vim-mucomplete|. In short, you can define a list of completion methods to
+    be tried in sequence. When a source fails to provide completion items, the
+    next one in the chain is attempted, until some completion is obtained, or
+    all sources have been tried.
+
+    You can specify different completion list for different filetypes. There
+    are the following built-in completion sources:
+
+    'lsp'       language-server protocol completion
+    'snippet'   snippet sources (see |g:autocomplete.snippets|)
+    'path'      path completion relative to the current file
+
+    You can also include the regular |ins-completion| sources. You can group
+    non-|ins-completion| sources in a list, in this case they will be merged
+    in the same popup. For example:
+>
+    let g:autocomplete.chains = {
+        \ 'python' : [ 'path', ['lsp', 'snippet'], 'keyn' ],
+        \ 'vim': [ 'path', 'keyn', 'c-p' ],
+        \ 'lua': [ 'path', 'keyn', 'c-p' ],
+        \}
+<
+                                                 *autocomplete-ins-completion*
+    List of available |ins-completion| sources and their names/mappings:
+
+    `whole lines`                                       'line'    <c-x><c-l>
+    `keywords in the current file`                      'keyn'    <c-x><c-n>
+    `keywords in the current file (reversed)`           'keyp'    <c-x><c-p>
+    `keywords in 'dictionary'`                          'dict'    <c-x><c-k>
+    `keywords in 'thesaurus'`                           'thes'    <c-x><c-t>
+    `keywords in the current and included files`        'incl'    <c-x><c-i>
+    `tags`                                              'tags'    <c-x><c-]>
+    `file names`                                        'file'    <c-x><c-f>
+    `definitions or macros`                             'defs'    <c-x><c-d>
+    `vim command-line`                                  'cmd'     <c-x><c-v>
+    `user defined completion`                           'user'    <c-x><c-u>
+    `omni completion`                                   'omni'    <c-x><c-o>
+    `spelling suggestions`                              'spel'    <c-x>s
+    `keywords in 'complete'`                            `'c-n'`     <c-n>
+    `keywords in 'complete' (reversed)`                 `'c-p'`     <c-p>
+
+    You can switch to the next or previous sources by mapping keys in insert
+    mode. For example, using <c-j> to switch to previous sources and <c-k> to
+    switch to next sources:
+>
+    imap <c-j> <Plug>(NextSource)
+    imap <c-k> <Plug>(PrevSource)
+<
+    You can also have different chains for different 'scopes', and different
+    filetypes. By 'scope' is meant the syntax group at cursor position. In
+    this way you can have different completion lists in comments and function
+    calls, strings, comments, etc. Such scope names are matched with regex:
+>
+    let g:autocomplete.chains = {
+        \ 'lua': {
+        \   'string':  [ 'keyn', 'c-p' ],
+        \   'comment': [ 'keyn' ],
+        \   'func':    ['lsp'],
+        \   'default': [ ['lsp', 'snippet'], 'keyn' ],
+        \ },
+        \}
+<
+    Note: the 'default' key is special, it is used for unmatched groups but is
+    not matched itself. If not present, the built-in default will be used.
+    See |g:autocomplete.chains.default|.
+
+    Note: You can check the syntax group under the cursor with this command:
+>
+    :echo synIDattr(synID(line('.'), col('.'), 1), "name")
+<
+- - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.chains.default*
+
+    There is a 'default' chain that is used when an appropriate chain has not
+    been defined by the user. It is actually a scoped chain:
+>
+    default = {
+      comment = { 'file', 'keyn' },
+      default = { {'snippet', 'lsp'}, 'file', 'keyn' }
+    }
+<
+    That is, it will only complete words from the current buffers when inside
+    comments, and attempt several methods in other scopes.
+
+    This 'default' chain is also used when scoped chains for the current
+    filetype have been defined, but they don't match the current scope, nor
+    they define their own 'default' chain for unmatched syntax groups.
+
+    It is also used (and this is less obvious) when a filetype-specific chain
+    is defined, but as a list, not as a scoped chain: in this case, the
+    filetype chain will only replace the `default.default` list in the snippet
+    above, while inside comments the 'default' scoped chain will be used.
+
+    For example, here you define some simple, non-scoped chains for several
+    filetypes:
+>
+    let g:autocomplete.chains = {
+        \ 'lua': [ ['lsp', 'snippet'], 'keyn' ],
+        \ 'vim': [ 'snippet', 'cmd', 'keyn' ]
+        \}
+<
+    Internally, they will be actually redefined as:
+>
+    let g:autocomplete.chains = {
+      \ 'lua': {
+      \   'default': [ ['lsp', 'snippet'], 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \ },
+      \ 'vim': {
+      \   'default': [ 'snippet', 'cmd', 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \ },
+      \}
+<
+    Missing scopes will also be integrated:
+>
+    let g:autocomplete.chains = {
+      \ 'lua': {
+      \   'default': [ 'lsp', 'file', 'keyn' ],
+      \   'string': [ 'file', 'keyn', 'c-n' ],
+      \ },
+      \}
+<
+    Becomes:
+    >
+    let g:autocomplete.chains = {
+      \ 'lua': {
+      \   'default': [ 'lsp', 'file', 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \   'string': [ 'file', 'keyn', 'c-n' ],
+      \ },
+      \}
+<
+    You can redefine this 'default' chain but you obviously don't need to.
+    If you do, you should define it as a scoped chain, and you only need to
+    set a default for the groups you're interested in. If it fails to match
+    any, the built-in 'default' will still be used as a fallback.
+
+    If you define the default chain as a list, it will also be converted to
+    a scoped chain:
+>
+    let g:autocomplete.chains = {
+      \ 'default' : [ 'lsp', 'file', 'keyn' ],
+      \}
+<
+    Will be converted into:
+>
+    let g:autocomplete.chains = {
+      \ 'default': {
+      \   'default': [ 'lsp', 'file', 'keyn' ],
+      \   'comment': [ 'file', 'keyn' ],
+      \ },
+<
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - -  *g:autocomplete.matching*
+
+    There are three different kind of matching technique implement in
+    autocomplete-nvim: 'substring', 'fuzzy' or 'exact'. You can specify a list
+    of matching strategy, autocomplete-nvim will loop through the list and
+    assign priority from high to low. For example
+>
+    let g:autocomplete.matching = ['exact', 'substring', 'fuzzy']
+<
+    default value: ['exact']
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - *g:autocomplete.ignore_case*
+
+    Enable ignore case matching in all matching strategy. For example
+>
+    let g:autocomplete.ignore_case = 1
+<
+    default value: 0
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - *g:autocomplete.sorting*
+
+    You can determine how you want to sort the completion items in popup menu.
+    Possible values are 'alphabet', 'length', 'none'
+
+    default value: 'alphabet'
+
+
+==============================================================================
+BUFFER-LOCAL OPTIONS                             *autocomplete-buffer-options*
+
+These options should be set either in |ftplugin|s, or using |autocmd-groups|.
+Example:
+>
+    augroup CompletionTriggers
+        autocmd!
+        autocmd BufEnter * let b:completion_triggers.lsp = ['.']
+        autocmd BufEnter *.c,*.cpp let b:completion_triggers.lsp = ['.', '::']
+    augroup end
+<
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - *b:autocomplete_chain*
+
+    It works as |g:autocomplete.chains|, but it's buffer-specific.
+    It is preferred to the global value if it has been defined.
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - -  *b:completion_triggers*
+
+    By setting this variable, you can define sequences of characters that will
+    trigger a completion. The variable must hold a dictionary with completion
+    methods as keys, and characters as values. |autocomplete-ins-completion|
+    methods are also accepted.
+
+    Example:
+>
+    let b:completion_triggers = {'lsp': ['.', '::'], 'omni': ['.'], 'file': ['/']}
+<
+    Note: LSP clients can provide their own triggers. By setting this variable
+    (that is, its 'lsp' value) you will use exclusively your own triggers.
+    This can also improve performance. If you want to know what triggers LSP
+    provides, run `:LspTriggerCharacters`.
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:et:fen:
