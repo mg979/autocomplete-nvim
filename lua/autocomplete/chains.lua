@@ -32,9 +32,9 @@ local M = {}
 
 -- default chain to be used if no valid chain can be fetched from definitions
 local defaultScopedChain = {
-    comment = { 'file', 'keyn' },
-    default = { {'snippet', 'lsp'}, 'file', 'keyn' }
-  }
+  comment = { 'keyn' },
+  default = { {'snippet', 'lsp'}, 'keyn', 'file' }
+}
 
 
 ------------------------------------------------------------------------
@@ -44,9 +44,9 @@ local defaultScopedChain = {
 -- default chain to be used if no valid chain can be fetched from definitions
 local function getDefaultChain()
   return M.defaultChain or {
-        comment = { 'file', 'keyn' },
-        default = { {'snippet', 'lsp'}, 'file', 'keyn' }
-      }
+    comment = { 'keyn' },
+    default = { {'snippet', 'lsp'}, 'keyn', 'file' }
+  }
 end
 
 local function verifyDefaultChain()

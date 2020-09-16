@@ -286,8 +286,8 @@ CHAINS                                                   *autocomplete-chains*
   been defined by the user. It is actually a scoped chain:
 >
   default = {
-    comment = { 'file', 'keyn' },
-    default = { {'snippet', 'lsp'}, 'file', 'keyn' }
+    comment = { 'keyn' },
+    default = { {'snippet', 'lsp'}, 'keyn', 'file' }
   }
 <
   That is, it will only complete words from the current buffers when inside
@@ -315,11 +315,11 @@ CHAINS                                                   *autocomplete-chains*
   let g:autocomplete.chains = {
     \ 'lua': {
     \   'default': [ ['lsp', 'snippet'], 'keyn' ],
-    \   'comment': [ 'file', 'keyn' ],
+    \   'comment': [ 'keyn' ],
     \ },
     \ 'vim': {
     \   'default': [ 'snippet', 'cmd', 'keyn' ],
-    \   'comment': [ 'file', 'keyn' ],
+    \   'comment': [ 'keyn' ],
     \ },
     \}
 <
@@ -327,8 +327,8 @@ CHAINS                                                   *autocomplete-chains*
 >
   let g:autocomplete.chains = {
     \ 'lua': {
-    \   'default': [ 'lsp', 'file', 'keyn' ],
-    \   'string': [ 'file', 'keyn', 'c-n' ],
+    \   'default': [ 'lsp', 'keyn', 'file' ],
+    \   'string':  [ 'keyn', 'file' ],
     \ },
     \}
 <
@@ -336,9 +336,9 @@ CHAINS                                                   *autocomplete-chains*
   >
   let g:autocomplete.chains = {
     \ 'lua': {
-    \   'default': [ 'lsp', 'file', 'keyn' ],
-    \   'comment': [ 'file', 'keyn' ],
-    \   'string': [ 'file', 'keyn', 'c-n' ],
+    \   'default': [ 'lsp', 'keyn', 'file' ],
+    \   'comment': [ 'keyn' ],
+    \   'string':  [ 'keyn', 'file' ],
     \ },
     \}
 <
@@ -351,15 +351,15 @@ CHAINS                                                   *autocomplete-chains*
   a scoped chain:
 >
   let g:autocomplete.chains = {
-    \ 'default' : [ 'lsp', 'file', 'keyn' ],
+    \ 'default' : [ 'lsp', 'keyn', 'file' ],
     \}
 <
   Will be converted into:
 >
   let g:autocomplete.chains = {
     \ 'default': {
-    \   'default': [ 'lsp', 'file', 'keyn' ],
-    \   'comment': [ 'file', 'keyn' ],
+    \   'default': [ 'lsp', 'keyn', 'file' ],
+    \   'comment': [ 'keyn' ],
     \ },
 <
 
