@@ -40,7 +40,7 @@ function M.on_InsertEnter()
   completion.init()
   -- start timer for auto popup
   if not vim.g.autocomplete.auto_popup_disabled and
-      vim.b.completion_auto_popup == 1 then
+      vim.b.completion_auto_popup then
     completion.popup.auto.start()
   end
 end
